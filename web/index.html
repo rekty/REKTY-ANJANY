@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <base href="$FLUTTER_BASE_HREF">
+
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+  <meta content="IE=Edge" http-equiv="X-UA-Compatible">
+  
+  <!-- SEO Meta Tags -->
+  <meta name="description" content="Rekty Anjany - Developer, Creator, Innovator. Explore my portfolio, projects, and applications.">
+  <meta name="keywords" content="Rekty Anjany, Developer, Flutter, React, Node.js, Web Development, Portfolio">
+  <meta name="author" content="Rekty Anjany">
+  
+  <!-- Performance Optimization -->
+  <meta http-equiv="X-DNS-Prefetch-Control" content="on">
+  <link rel="dns-prefetch" href="https://fonts.googleapis.com">
+  <link rel="dns-prefetch" href="https://fonts.gstatic.com">
+  <link rel="dns-prefetch" href="https://tdztcovdwewfsenzrtnq.supabase.co">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  
+  <!-- Open Graph / Facebook -->
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Rekty Anjany - Developer Portfolio">
+  <meta property="og:description" content="Code. Create. Innovate. Explore my projects and applications.">
+  <meta property="og:url" content="https://rektyanjany.com">
+  
+  <!-- Twitter -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Rekty Anjany - Developer Portfolio">
+  <meta name="twitter:description" content="Code. Create. Innovate. Explore my projects and applications.">
+
+  <!-- iOS meta tags & icons -->
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Rekty Anjany">
+  <link rel="apple-touch-icon" href="icons/Icon-192.png">
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" href="favicon.png"/>
+  <link rel="shortcut icon" type="image/png" href="favicon.png"/>
+
+  <title>Rekty Anjany - Developer Portfolio</title>
+  <link rel="manifest" href="manifest.json">
+  
+  <!-- Loading Screen -->
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      background: linear-gradient(135deg, #0a0e27 0%, #1a1f3a 100%);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    }
+    
+    #loading {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      background: linear-gradient(135deg, #0a0e27 0%, #1a1f3a 100%);
+      z-index: 9999;
+    }
+    
+    .spinner {
+      width: 50px;
+      height: 50px;
+      border: 3px solid rgba(84, 197, 248, 0.1);
+      border-top-color: #54C5F8;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+    
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    
+    .loading-text {
+      margin-top: 20px;
+      color: #54C5F8;
+      font-size: 14px;
+      font-weight: 500;
+      letter-spacing: 1px;
+    }
+    
+    /* Hide loading when Flutter is ready */
+    .flutter-ready #loading {
+      opacity: 0;
+      transition: opacity 0.3s ease;
+      pointer-events: none;
+    }
+  </style>
+</head>
+<body>
+  <!-- Loading Screen -->
+  <div id="loading">
+    <div class="spinner"></div>
+    <div class="loading-text">LOADING...</div>
+  </div>
+  
+  <!-- Flutter App -->
+  <script src="flutter_bootstrap.js" async></script>
+  
+  <!-- Remove loading screen when Flutter is ready -->
+  <script>
+    window.addEventListener('flutter-first-frame', function() {
+      document.body.classList.add('flutter-ready');
+      setTimeout(function() {
+        var loading = document.getElementById('loading');
+        if (loading) loading.remove();
+      }, 300);
+    });
+  </script>
+</body>
+</html>

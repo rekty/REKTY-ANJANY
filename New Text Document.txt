@@ -1,0 +1,26 @@
+rekty_anjany/
+│
+├── lib/
+│   │
+│   ├── main.dart              ✅
+│   │
+│   ├── app/
+│   │   ├── app.dart           ✅
+│   │   ├── router.dart        ✅
+│   │   └── theme.dart         ✅
+│   │
+│   ├── core/
+│   │
+│   ├── features/
+│   │
+│   ├── shared/
+│   │
+│   └── assets/
+│
+├── ROADMAP.md                 ✅
+│
+├── pubspec.yaml
+├── README.md
+├── android/
+├── web/
+└── ...
