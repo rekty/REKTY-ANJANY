@@ -4,7 +4,7 @@ import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_radius.dart';
 import '../../core/constants/app_shadow.dart';
 import '../../core/constants/app_spacing.dart';
-import '../../core/services/supabase_service.dart';
+// import '../../core/services/supabase_service.dart'; // TEMPORARILY DISABLED
 import '../../shared/layout/app_scaffold.dart';
 import '../../shared/layout/responsive_container.dart';
 import '../../shared/layout/section_title.dart';
@@ -53,9 +53,9 @@ class _DownloadsList extends StatefulWidget {
 }
 
 class _DownloadsListState extends State<_DownloadsList> {
-  final _supabase = SupabaseService.instance;
+  // final _supabase = SupabaseService.instance; // TEMPORARILY DISABLED
   List<Map<String, dynamic>> _apps = [];
-  bool _loading = true;
+  bool _loading = false; // Changed to false
   String? _error;
 
   @override
@@ -66,7 +66,82 @@ class _DownloadsListState extends State<_DownloadsList> {
 
   Future<void> _loadApps() async {
     try {
-      final apps = await _supabase.getApps(limit: 20);
+      // final apps = await _supabase.getApps(limit: 20); // TEMPORARILY DISABLED
+      // Dummy data for now
+      final apps = <Map<String, dynamic>>[
+        {
+          'id': '1',
+          'name': 'Rekty AI - AI Assistant',
+          'description': 'Intelligent AI chat assistant with image generation powered by advanced AI models. Generate creative content and get instant answers.',
+          'version': 'v1.0.0',
+          'platform': 'Android',
+          'file_size': '25 MB',
+          'download_url': '#',
+          'source_url': 'https://github.com',
+          'icon': 'smart_toy_rounded',
+          'color': '#818CF8',
+          'features': [
+            'AI Chat with Context Awareness',
+            'Text-to-Image Generation',
+            'Multiple AI Model Support',
+            'Modern Material Design UI',
+          ],
+        },
+        {
+          'id': '2',
+          'name': 'Rekty POS - Point of Sale',
+          'description': 'Modern point of sale system for retail businesses with inventory management, sales tracking, and customer management features.',
+          'version': 'v1.0.0',
+          'platform': 'Android',
+          'file_size': '18 MB',
+          'download_url': '#',
+          'source_url': 'https://github.com',
+          'icon': 'point_of_sale_rounded',
+          'color': '#34D399',
+          'features': [
+            'Real-time Sales Tracking',
+            'Inventory Management',
+            'Customer Database',
+            'Sales Reports & Analytics',
+          ],
+        },
+        {
+          'id': '3',
+          'name': 'Flutter UI Kit Pro',
+          'description': 'Complete UI kit with 100+ ready-to-use widgets and components for building beautiful Flutter applications faster.',
+          'version': 'v2.1.0',
+          'platform': 'Cross-Platform',
+          'file_size': '8 MB',
+          'download_url': '#',
+          'source_url': 'https://github.com',
+          'icon': 'android_rounded',
+          'color': '#54C5F8',
+          'features': [
+            '100+ Premium Widgets',
+            'Dark & Light Theme Support',
+            'Responsive Layouts',
+            'Animation Library',
+          ],
+        },
+        {
+          'id': '4',
+          'name': 'Developer Tools Bundle',
+          'description': 'Essential developer tools package including code snippets, utilities, and productivity boosters for modern development.',
+          'version': 'v1.3.0',
+          'platform': 'Web / Desktop',
+          'file_size': '12 MB',
+          'download_url': '#',
+          'source_url': 'https://github.com',
+          'icon': 'android_rounded',
+          'color': '#F59E0B',
+          'features': [
+            'Code Snippet Manager',
+            'API Testing Tools',
+            'Color Palette Generator',
+            'JSON Formatter & Validator',
+          ],
+        },
+      ];
       setState(() {
         _apps = apps;
         _loading = false;

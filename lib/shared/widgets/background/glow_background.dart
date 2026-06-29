@@ -12,40 +12,44 @@ class GlowBackground extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Stack(
-      children: [
-
-        /// Top Right Glow
-        Positioned(
-          top: -250,
-          right: -250,
-          child: _Glow(
-            size: 600,
-            color: AppColors.primary.withValues(alpha: 0.15),
+    return Container(
+      decoration: const BoxDecoration(
+        color: Color(0xFF0a0e27), // Deep dark blue-black base
+      ),
+      child: Stack(
+        children: [
+          /// Top Right Glow
+          Positioned(
+            top: -250,
+            right: -250,
+            child: _Glow(
+              size: 600,
+              color: AppColors.primary.withValues(alpha: 0.15),
+            ),
           ),
-        ),
 
-        /// Bottom Left Glow
-        Positioned(
-          bottom: -300,
-          left: -250,
-          child: _Glow(
-            size: 700,
-            color: AppColors.accent.withValues(alpha: 0.08),
+          /// Bottom Left Glow
+          Positioned(
+            bottom: -300,
+            left: -250,
+            child: _Glow(
+              size: 700,
+              color: AppColors.accent.withValues(alpha: 0.08),
+            ),
           ),
-        ),
 
-        /// Center Glow
-        Align(
-          alignment: Alignment.center,
-          child: _Glow(
-            size: 500,
-            color: AppColors.primary.withValues(alpha: 0.05),
+          /// Center Glow
+          Align(
+            alignment: Alignment.center,
+            child: _Glow(
+              size: 500,
+              color: AppColors.primary.withValues(alpha: 0.05),
+            ),
           ),
-        ),
 
-        child,
-      ],
+          child,
+        ],
+      ),
     );
   }
 }

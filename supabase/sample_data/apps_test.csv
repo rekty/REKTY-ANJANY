@@ -1,0 +1,2 @@
+name,slug,description,icon,status,status_color,version,size,platform,features,download_count,rating,download_url,changelog,screenshots
+Rekty Code Editor,rekty-code-editor,Powerful code editor with syntax highlighting and Git integration,https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=200,Live,#10B981,2.5.0,125 MB,Desktop,"{Syntax highlighting,IntelliSense,Git integration}",15234,4.9,https://github.com/rekty/releases,v2.5.0: Bug fixes and improvements,"{https://via.placeholder.com/800x600}"

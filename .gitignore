@@ -1,54 +1,131 @@
-# Miscellaneous
-*.class
+# ==========================================
+# Flutter / Dart
+# ==========================================
+
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+.pub/
+.pub-cache/
+build/
+**/doc/api/
+**/ios/Flutter/.last_build_id
+
+# ==========================================
+# Android
+# ==========================================
+
+android/app/debug/
+android/app/profile/
+android/app/release/
+android/key.properties
+*.jks
+*.keystore
+
+# ==========================================
+# iOS
+# ==========================================
+
+ios/Pods/
+ios/.symlinks/
+ios/Flutter/Flutter.framework
+ios/Flutter/Flutter.podspec
+
+# ==========================================
+# Web Build
+# ==========================================
+
+build/web/
+
+# ==========================================
+# IDE
+# ==========================================
+
+.idea/
+.vscode/
+*.iml
+*.ipr
+*.iws
+
+# ==========================================
+# Logs
+# ==========================================
+
 *.log
-*.pyc
+*.tmp
 *.swp
+*.lock
+
+# ==========================================
+# Environment Variables (IMPORTANT)
+# ==========================================
+
+.env
+.env.*
+!.env.example
+
+# ==========================================
+# Firebase
+# ==========================================
+
+.firebase/
+firebase-debug.log
+firebase-debug.*.log
+
+# Firebase Admin SDK
+*-firebase-adminsdk-*.json
+
+# ==========================================
+# Supabase
+# ==========================================
+
+supabase/.temp/
+supabase/.branches/
+supabase/.cache/
+
+# ==========================================
+# Secrets
+# ==========================================
+
+secrets/
+credentials.json
+service-account.json
+*.pem
+*.key
+*.p12
+*.crt
+*.cer
+*.pfx
+
+# ==========================================
+# OS Files
+# ==========================================
+
 .DS_Store
+Thumbs.db
+Desktop.ini
+.AppleDouble
+.LSOverride
+
+# ==========================================
+# Misc
+# ==========================================
+
+*.class
+*.pyc
+.history/
 .atom/
 .build/
 .buildlog/
-.history
 .svn/
 .swiftpm/
 migrate_working_dir/
 
-# IntelliJ related
-*.iml
-*.ipr
-*.iws
-.idea/
+# ==========================================
+# Generated Debug Files
+# ==========================================
 
-# The .vscode folder contains launch configuration and tasks you configure in
-# VS Code which you may wish to be included in version control, so this line
-# is commented out by default.
-#.vscode/
-
-# Flutter/Dart/Pub related
-**/doc/api/
-**/ios/Flutter/.last_build_id
-.dart_tool/
-.flutter-plugins
-.flutter-plugins-dependencies
-.pub-cache/
-.pub/
-/build/
-
-# Symbolication related
 app.*.symbols
-
-# Obfuscation related
 app.*.map.json
-/build/debug-info/
-
-# Android Studio will place build artifacts here
-/android/app/debug
-/android/app/profile
-/android/app/release
-
-# Web build artifacts (for local testing only)
-/build/web/
-
-# Environment files (if you add them)
-.env
-.env.local
-.env.production
+build/debug-info/

@@ -1,0 +1,226 @@
+title,slug,excerpt,content,tag,tag_color,icon,read_time,published_at,author_name,author_avatar
+"Getting Started with Flutter Web","getting-started-flutter-web","Learn how to build beautiful web applications using Flutter framework with responsive design and modern UI.","# Getting Started with Flutter Web
+
+Flutter Web adalah platform yang memungkinkan kita membuat aplikasi web menggunakan framework Flutter. Dengan Flutter Web, kita bisa membuat aplikasi yang responsive dan modern.
+
+## Keunggulan Flutter Web
+
+1. **Single Codebase** - Satu kode untuk web, mobile, dan desktop
+2. **Beautiful UI** - Material Design dan Cupertino widgets
+3. **Fast Development** - Hot reload untuk development cepat
+4. **Native Performance** - Compiled ke JavaScript yang optimal
+
+## Setup Project
+
+```bash
+flutter create my_web_app
+cd my_web_app
+flutter run -d chrome
+```
+
+Flutter Web sangat cocok untuk membuat portfolio, dashboard, dan aplikasi bisnis modern.","Web Development","#54C5F8","web_rounded","5 min read","2026-06-15","Rekty Anjany","https://ui-avatars.com/api/?name=Rekty+Anjany&background=54C5F8&color=fff"
+"Mastering React Hooks in 2026","mastering-react-hooks-2026","Deep dive into React Hooks and learn how to build modern React applications with functional components.","# Mastering React Hooks
+
+React Hooks telah mengubah cara kita menulis React components. Dengan hooks, kita bisa menggunakan state dan lifecycle di functional components.
+
+## Popular Hooks
+
+### useState
+```javascript
+const [count, setCount] = useState(0);
+```
+
+### useEffect
+```javascript
+useEffect(() => {
+  document.title = `Count: ${count}`;
+}, [count]);
+```
+
+### useContext
+```javascript
+const theme = useContext(ThemeContext);
+```
+
+Hooks membuat code lebih clean dan mudah di-maintain.","Frontend","#54C5F8","web_rounded","8 min read","2026-06-10","Rekty Anjany","https://ui-avatars.com/api/?name=Rekty+Anjany&background=54C5F8&color=fff"
+"Building REST APIs with Node.js","building-rest-apis-nodejs","Complete guide to building RESTful APIs using Node.js, Express, and MongoDB for modern web applications.","# Building REST APIs with Node.js
+
+Node.js adalah platform yang sempurna untuk membuat REST APIs. Dengan Express framework, kita bisa membuat API dengan cepat.
+
+## Setup Express Server
+
+```javascript
+const express = require('express');
+const app = express();
+
+app.get('/api/users', (req, res) => {
+  res.json({ users: [] });
+});
+
+app.listen(3000);
+```
+
+## Best Practices
+
+1. Use proper HTTP methods (GET, POST, PUT, DELETE)
+2. Implement authentication dengan JWT
+3. Add validation untuk input data
+4. Handle errors dengan middleware
+
+Node.js sangat scalable untuk production applications.","Backend","#9B87F5","dns_rounded","10 min read","2026-06-05","Rekty Anjany","https://ui-avatars.com/api/?name=Rekty+Anjany&background=9B87F5&color=fff"
+"PostgreSQL Performance Optimization","postgresql-performance-optimization","Learn advanced techniques to optimize PostgreSQL database queries and improve application performance.","# PostgreSQL Performance Optimization
+
+PostgreSQL adalah database yang powerful, tapi perlu optimization untuk performance terbaik.
+
+## Indexing Strategies
+
+```sql
+CREATE INDEX idx_users_email ON users(email);
+CREATE INDEX idx_posts_created ON posts(created_at DESC);
+```
+
+## Query Optimization
+
+1. **Use EXPLAIN ANALYZE** untuk check query performance
+2. **Avoid SELECT *** - pilih columns yang diperlukan saja
+3. **Use proper JOIN** - INNER JOIN vs LEFT JOIN
+4. **Add WHERE conditions** yang specific
+
+## Connection Pooling
+
+```javascript
+const pool = new Pool({
+  max: 20,
+  idleTimeoutMillis: 30000
+});
+```
+
+Dengan optimization yang tepat, PostgreSQL bisa handle millions of records dengan cepat.","Database","#F97316","storage_rounded","12 min read","2026-05-28","Rekty Anjany","https://ui-avatars.com/api/?name=Rekty+Anjany&background=F97316&color=fff"
+"Modern UI Design Principles","modern-ui-design-principles","Explore the latest UI design trends and principles for creating beautiful user interfaces in 2026.","# Modern UI Design Principles
+
+UI Design terus berkembang. Berikut principles untuk membuat UI yang modern dan user-friendly.
+
+## Key Principles
+
+### 1. Simplicity
+Less is more. Remove unnecessary elements.
+
+### 2. Consistency
+Use consistent colors, fonts, and spacing.
+
+### 3. Hierarchy
+Make important elements stand out.
+
+### 4. Accessibility
+Design untuk semua users, termasuk disabilities.
+
+## Color Palette
+
+- **Primary**: #54C5F8 (Blue)
+- **Secondary**: #9B87F5 (Purple)
+- **Accent**: #F97316 (Orange)
+- **Success**: #10B981 (Green)
+
+## Typography
+
+Use modern fonts seperti Inter, SF Pro, atau Roboto.
+
+Good design = Good UX = Happy users.","Design","#EC4899","palette_rounded","7 min read","2026-05-20","Rekty Anjany","https://ui-avatars.com/api/?name=Rekty+Anjany&background=EC4899&color=fff"
+"Deploying to Cloud: AWS vs Firebase","deploying-cloud-aws-firebase","Compare AWS and Firebase hosting solutions to choose the best platform for your application.","# Deploying to Cloud
+
+Memilih cloud platform adalah keputusan penting. Mari compare AWS dan Firebase.
+
+## Firebase Hosting
+
+### Pros:
+- ✅ Easy setup
+- ✅ Free SSL
+- ✅ Global CDN
+- ✅ Auto-scaling
+
+### Cons:
+- ❌ Limited customization
+- ❌ Vendor lock-in
+
+## AWS (EC2 + S3)
+
+### Pros:
+- ✅ Full control
+- ✅ Scalable
+- ✅ Many services
+
+### Cons:
+- ❌ Complex setup
+- ❌ More expensive
+- ❌ Requires DevOps knowledge
+
+## My Recommendation
+
+- **Small projects**: Firebase
+- **Enterprise**: AWS
+- **Static sites**: Netlify/Vercel
+
+Choose based on your needs and budget.","DevOps","#6366F1","cloud_rounded","9 min read","2026-05-15","Rekty Anjany","https://ui-avatars.com/api/?name=Rekty+Anjany&background=6366F1&color=fff"
+"Introduction to Machine Learning","intro-machine-learning","Get started with machine learning concepts and build your first ML model using Python and TensorFlow.","# Introduction to Machine Learning
+
+Machine Learning adalah subset dari AI yang memungkinkan komputer belajar dari data.
+
+## Types of ML
+
+1. **Supervised Learning** - Data labeled
+2. **Unsupervised Learning** - Data unlabeled
+3. **Reinforcement Learning** - Learn from feedback
+
+## Simple Example (Python)
+
+```python
+from sklearn.linear_model import LinearRegression
+
+model = LinearRegression()
+model.fit(X_train, y_train)
+predictions = model.predict(X_test)
+```
+
+## Popular Libraries
+
+- **TensorFlow** - Google's ML framework
+- **PyTorch** - Facebook's ML library
+- **scikit-learn** - Simple ML tools
+
+Start with simple projects dan gradually increase complexity.","AI/ML","#8B5CF6","school_rounded","15 min read","2026-05-10","Rekty Anjany","https://ui-avatars.com/api/?name=Rekty+Anjany&background=8B5CF6&color=fff"
+"JavaScript ES2026 New Features","javascript-es2026-features","Explore the latest JavaScript features introduced in ES2026 and how to use them in your projects.","# JavaScript ES2026 New Features
+
+JavaScript terus berkembang dengan features baru setiap tahun.
+
+## Top Features ES2026
+
+### 1. Pipeline Operator
+```javascript
+const result = value
+  |> doubleSay
+  |> capitalize
+  |> exclaim;
+```
+
+### 2. Pattern Matching
+```javascript
+const response = match (value) {
+  when Number -> 'number',
+  when String -> 'string',
+  else -> 'unknown'
+};
+```
+
+### 3. Temporal API
+```javascript
+const now = Temporal.Now.instant();
+const date = Temporal.PlainDate.from('2026-06-28');
+```
+
+### 4. Records and Tuples
+```javascript
+const record = #{x: 1, y: 2};
+const tuple = #[1, 2, 3];
+```
+
+JavaScript menjadi lebih powerful dan expressive!","JavaScript","#F59E0B","web_rounded","6 min read","2026-05-05","Rekty Anjany","https://ui-avatars.com/api/?name=Rekty+Anjany&background=F59E0B&color=fff"

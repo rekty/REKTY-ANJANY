@@ -4,7 +4,7 @@ import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_radius.dart';
 import '../../core/constants/app_shadow.dart';
 import '../../core/constants/app_spacing.dart';
-import '../../core/services/supabase_service.dart';
+// import '../../core/services/supabase_service.dart'; // TEMPORARILY DISABLED
 import '../../shared/layout/app_scaffold.dart';
 import '../../shared/layout/responsive_container.dart';
 import '../../shared/layout/section_title.dart';
@@ -226,7 +226,7 @@ class _FullContactFormState extends State<_FullContactForm> {
   final _emailController = TextEditingController();
   final _subjectController = TextEditingController();
   final _messageController = TextEditingController();
-  final _supabase = SupabaseService.instance;
+  // final _supabase = SupabaseService.instance; // TEMPORARILY DISABLED
   bool _sending = false;
   bool _sent = false;
   String? _error;
@@ -249,12 +249,16 @@ class _FullContactFormState extends State<_FullContactForm> {
     });
 
     try {
-      await _supabase.submitContactMessage(
+      // await _supabase.submitContactMessage( // TEMPORARILY DISABLED
+      // Mock success for now
+      await Future.delayed(const Duration(seconds: 1));
+      /*
         name: _nameController.text.trim(),
         email: _emailController.text.trim(),
         subject: _subjectController.text.trim(),
         message: _messageController.text.trim(),
-      );
+      */
+      // );
 
       setState(() {
         _sending = false;

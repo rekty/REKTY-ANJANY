@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
-import 'core/config/supabase_config.dart';
-import 'core/services/supabase_service.dart';
 import 'core/utils/image_cache_manager.dart';
 import 'app/app.dart';
 
@@ -10,18 +8,14 @@ void main() async {
 
   // Performance optimizations
   if (kIsWeb) {
-    // Optimize for web
     debugPrint('Running in optimized web mode');
   }
 
   // Initialize image cache manager
   ImageCacheManager.instance.initialize();
 
-  // Initialize Supabase
-  await SupabaseService.initialize(
-    supabaseUrl: SupabaseConfig.supabaseUrl,
-    supabaseAnonKey: SupabaseConfig.supabaseAnonKey,
-  );
+  // Don't initialize Supabase here - it will be initialized on-demand
+  // This avoids null pointer errors on web startup
 
   runApp(const RektyAnjanyApp());
 }

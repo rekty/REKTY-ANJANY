@@ -1,31 +1,95 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 
 class SupabaseService {
   static SupabaseService? _instance;
   static SupabaseService get instance => _instance ??= SupabaseService._();
+  static bool _initialized = false;
+  static String? _initError;
 
   SupabaseService._();
 
-  SupabaseClient get client => Supabase.instance.client;
+  SupabaseClient? get clientOrNull {
+    try {
+      if (!_initialized) return null;
+      return Supabase.instance.client;
+    } catch (e) {
+      print('Error getting Supabase client: $e');
+      return null;
+    }
+  }
 
-  // Initialize Supabase
+  SupabaseClient get client {
+    final c = clientOrNull;
+    if (c == null) {
+      throw Exception('Supabase not initialized. Error: $_initError');
+    }
+    return c;
+  }
+
+  // Initialize Supabase (call this before using any Supabase features)
   static Future<void> initialize({
     required String supabaseUrl,
     required String supabaseAnonKey,
   }) async {
-    await Supabase.initialize(
-      url: supabaseUrl,
-      publishableKey: supabaseAnonKey,
-      authOptions: const FlutterAuthClientOptions(
-        authFlowType: AuthFlowType.pkce,
-      ),
-    );
+    if (_initialized) {
+      print('Supabase already initialized');
+      return;
+    }
+    
+    try {
+      print('Initializing Supabase...');
+      print('URL: $supabaseUrl');
+      print('Key length: ${supabaseAnonKey.length}');
+      
+      // Extra safety for web
+      if (kIsWeb) {
+        print('Running on Web - using web-safe initialization');
+      }
+      
+      await Supabase.initialize(
+        url: supabaseUrl,
+        anonKey: supabaseAnonKey,
+        authOptions: const FlutterAuthClientOptions(
+          authFlowType: AuthFlowType.pkce,
+        ),
+      );
+      
+      // Verify initialization
+      final testClient = Supabase.instance.client;
+      if (testClient.auth != null) {
+        _initialized = true;
+        _initError = null;
+        print('✅ Supabase initialized and verified');
+      } else {
+        throw Exception('Supabase client auth is null');
+      }
+    } catch (e, stack) {
+      _initialized = false;
+      _initError = e.toString();
+      print('❌ Supabase initialization error: $e');
+      if (stack.toString().length > 500) {
+        print('Stack (truncated): ${stack.toString().substring(0, 500)}...');
+      } else {
+        print('Stack: $stack');
+      }
+      // Don't rethrow - allow app to continue
+    }
   }
+
+  // Check if initialized
+  static bool get isInitialized => _initialized;
+  
+  // Get initialization error
+  static String? get initError => _initError;
 
   // ==========================================
   // BLOG POSTS
   // ==========================================
   Future<List<Map<String, dynamic>>> getBlogPosts({int limit = 10}) async {
+    if (!_initialized) {
+      throw Exception('Supabase not initialized. Error: $_initError');
+    }
     final response = await client
         .from('blog_posts')
         .select()

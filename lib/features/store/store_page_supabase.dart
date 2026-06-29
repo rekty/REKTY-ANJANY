@@ -4,7 +4,7 @@ import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_radius.dart';
 import '../../core/constants/app_shadow.dart';
 import '../../core/constants/app_spacing.dart';
-import '../../core/services/supabase_service.dart';
+// import '../../core/services/supabase_service.dart'; // TEMPORARILY DISABLED
 import '../../shared/layout/app_scaffold.dart';
 import '../../shared/layout/responsive_container.dart';
 import '../../shared/layout/section_title.dart';
@@ -29,7 +29,52 @@ class _StorePageSupabaseState extends State<StorePageSupabase> {
 
   Future<void> _loadProducts() async {
     try {
-      final products = await SupabaseService.instance.getProducts(limit: 50);
+      // final products = await SupabaseService.instance.getProducts(limit: 50); // TEMPORARILY DISABLED
+      // Dummy data for now
+      final products = <Map<String, dynamic>>[
+        {
+          'id': '1',
+          'name': 'Flutter UI Kit Pro',
+          'description': 'Premium collection of 100+ Flutter widgets and components with dark mode support, animations, and responsive layouts ready for production.',
+          'price': 49.0,
+          'original_price': 79.0,
+          'icon': 'auto_awesome_rounded',
+          'badge': 'SALE',
+          'rating': 4.9,
+          'sales_count': 234,
+        },
+        {
+          'id': '2',
+          'name': 'AI Integration Pack',
+          'description': 'Complete AI toolkit for Flutter including chat interfaces, image generation, voice recognition, and pre-built AI model integrations.',
+          'price': 69.0,
+          'icon': 'smart_toy_rounded',
+          'badge': 'NEW',
+          'rating': 5.0,
+          'sales_count': 89,
+        },
+        {
+          'id': '3',
+          'name': 'POS Source Code',
+          'description': 'Full source code of professional Point of Sale system with inventory management, sales analytics, customer database, and receipt printing.',
+          'price': 149.0,
+          'icon': 'point_of_sale_rounded',
+          'badge': 'FEATURED',
+          'rating': 4.8,
+          'sales_count': 156,
+        },
+        {
+          'id': '4',
+          'name': 'Developer Course Bundle',
+          'description': 'Comprehensive development course covering Flutter, React, Node.js, and Firebase with 50+ hours of video content and project files.',
+          'price': 99.0,
+          'original_price': 149.0,
+          'icon': 'school_rounded',
+          'badge': 'HOT',
+          'rating': 4.9,
+          'sales_count': 421,
+        },
+      ];
       setState(() {
         _products = products;
         _isLoading = false;

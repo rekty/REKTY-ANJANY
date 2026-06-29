@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
+import 'dart:html' as html;
 
 import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_radius.dart';
 import '../../core/constants/app_shadow.dart';
 import '../../core/constants/app_spacing.dart';
-import '../../core/services/supabase_service.dart';
+import '../../core/services/supabase_auth_service.dart';
 import '../../shared/widgets/background/animated_background.dart';
 
 class LoginPage extends StatefulWidget {
@@ -20,7 +20,7 @@ class _LoginPageState extends State<LoginPage> {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
-  final _supabase = SupabaseService.instance;
+  final _auth = SupabaseAuthService.instance;
   bool _obscure = true;
   bool _loading = false;
   String? _errorMessage;
@@ -41,13 +41,12 @@ class _LoginPageState extends State<LoginPage> {
     });
 
     try {
-      final response = await _supabase.signInWithEmail(
+      final response = await _auth.signInWithEmail(
         email: _emailController.text.trim(),
         password: _passwordController.text,
       );
 
-      if (response.user != null) {
-        // Login berhasil
+      if (response['success'] == true) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
@@ -58,22 +57,15 @@ class _LoginPageState extends State<LoginPage> {
           );
           context.go('/');
         }
+      } else {
+        setState(() {
+          _errorMessage = response['message'] ?? 'Login failed';
+        });
       }
     } catch (e) {
       setState(() {
-        _errorMessage = _getErrorMessage(e.toString());
+        _errorMessage = 'Error: $e';
       });
-
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(_errorMessage!),
-            backgroundColor: AppColors.error,
-            behavior: SnackBarBehavior.floating,
-            duration: const Duration(seconds: 4),
-          ),
-        );
-      }
     } finally {
       if (mounted) {
         setState(() => _loading = false);
@@ -88,26 +80,15 @@ class _LoginPageState extends State<LoginPage> {
     });
 
     try {
-      await _supabase.client.auth.signInWithOAuth(
-        OAuthProvider.google,
-        redirectTo: 'https://your-website.com/', // Ganti dengan URL website kamu
-      );
-      // OAuth akan redirect otomatis
+      final response = await _auth.signInWithOAuth('google');
+      if (response['success'] == true && response['oauthUrl'] != null) {
+        // Redirect to Supabase OAuth URL
+        html.window.location.href = response['oauthUrl'];
+      }
     } catch (e) {
       setState(() {
-        _errorMessage = 'Google login failed: ${e.toString()}';
+        _errorMessage = 'Google login failed: $e';
       });
-
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(_errorMessage!),
-            backgroundColor: AppColors.error,
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
-      }
-    } finally {
       if (mounted) {
         setState(() => _loading = false);
       }
@@ -121,26 +102,15 @@ class _LoginPageState extends State<LoginPage> {
     });
 
     try {
-      await _supabase.client.auth.signInWithOAuth(
-        OAuthProvider.github,
-        redirectTo: 'https://your-website.com/', // Ganti dengan URL website kamu
-      );
-      // OAuth akan redirect otomatis
+      final response = await _auth.signInWithOAuth('github');
+      if (response['success'] == true && response['oauthUrl'] != null) {
+        // Redirect to Supabase OAuth URL
+        html.window.location.href = response['oauthUrl'];
+      }
     } catch (e) {
       setState(() {
-        _errorMessage = 'GitHub login failed: ${e.toString()}';
+        _errorMessage = 'GitHub login failed: $e';
       });
-
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(_errorMessage!),
-            backgroundColor: AppColors.error,
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
-      }
-    } finally {
       if (mounted) {
         setState(() => _loading = false);
       }
@@ -154,43 +124,19 @@ class _LoginPageState extends State<LoginPage> {
     });
 
     try {
-      await _supabase.client.auth.signInWithOAuth(
-        OAuthProvider.facebook,
-        redirectTo: 'https://your-website.com/', // Ganti dengan URL website kamu
-      );
-      // OAuth akan redirect otomatis
+      final response = await _auth.signInWithOAuth('facebook');
+      if (response['success'] == true && response['oauthUrl'] != null) {
+        // Redirect to Supabase OAuth URL
+        html.window.location.href = response['oauthUrl'];
+      }
     } catch (e) {
       setState(() {
-        _errorMessage = 'Facebook login failed: ${e.toString()}';
+        _errorMessage = 'Facebook login failed: $e';
       });
-
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(_errorMessage!),
-            backgroundColor: AppColors.error,
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
-      }
-    } finally {
       if (mounted) {
         setState(() => _loading = false);
       }
     }
-  }
-
-  String _getErrorMessage(String error) {
-    if (error.contains('Invalid login credentials')) {
-      return 'Email atau password salah';
-    } else if (error.contains('Email not confirmed')) {
-      return 'Email belum dikonfirmasi. Cek inbox email kamu.';
-    } else if (error.contains('User not found')) {
-      return 'Akun tidak ditemukan. Silakan register terlebih dahulu.';
-    } else if (error.contains('network')) {
-      return 'Koneksi internet bermasalah';
-    }
-    return 'Login gagal: ${error.replaceAll('Exception:', '').trim()}';
   }
 
   @override
@@ -198,53 +144,45 @@ class _LoginPageState extends State<LoginPage> {
     return AnimatedBackground(
       child: Scaffold(
         backgroundColor: Colors.transparent,
-        body: SafeArea(
-          child: Center(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.all(AppSpacing.xxl),
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 480),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    // Logo
-                    const _LoginLogo(),
-
-                    const SizedBox(height: AppSpacing.massive),
-
-                    // Card
-                    _LoginCard(
-                      formKey: _formKey,
-                      emailController: _emailController,
-                      passwordController: _passwordController,
-                      obscure: _obscure,
-                      loading: _loading,
-                      errorMessage: _errorMessage,
-                      onToggleObscure: () =>
-                          setState(() => _obscure = !_obscure),
-                      onLogin: _login,
-                      onGoogleLogin: _signInWithGoogle,
-                      onGitHubLogin: _signInWithGitHub,
-                      onFacebookLogin: _signInWithFacebook,
+        body: Center(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(AppSpacing.xxl),
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 480),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const _LoginLogo(),
+                  const SizedBox(height: AppSpacing.massive),
+                  _LoginCard(
+                    formKey: _formKey,
+                    emailController: _emailController,
+                    passwordController: _passwordController,
+                    obscure: _obscure,
+                    loading: _loading,
+                    errorMessage: _errorMessage,
+                    onToggleObscure: () =>
+                        setState(() => _obscure = !_obscure),
+                    onLogin: _login,
+                    onGoogleLogin: _signInWithGoogle,
+                    onGitHubLogin: _signInWithGitHub,
+                    onFacebookLogin: _signInWithFacebook,
+                  ),
+                  const SizedBox(height: AppSpacing.xxl),
+                  TextButton.icon(
+                    onPressed: () => context.go('/'),
+                    icon: const Icon(
+                      Icons.arrow_back_rounded,
+                      size: 16,
+                      color: AppColors.textSecondary,
                     ),
-
-                    const SizedBox(height: AppSpacing.xxl),
-
-                    // Back to Home
-                    TextButton.icon(
-                      onPressed: () => context.go('/'),
-                      icon: const Icon(
-                        Icons.arrow_back_rounded,
-                        size: 16,
-                        color: AppColors.textSecondary,
-                      ),
-                      label: const Text(
-                        'Back to Home',
-                        style: TextStyle(color: AppColors.textSecondary),
-                      ),
+                    label: const Text(
+                      'Back to Home',
+                      style: TextStyle(color: AppColors.textSecondary),
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
             ),
           ),
@@ -276,9 +214,7 @@ class _LoginLogo extends StatelessWidget {
             size: 38,
           ),
         ),
-
         const SizedBox(height: AppSpacing.lg),
-
         const Text(
           'REKTY ANJANY',
           style: TextStyle(
@@ -288,9 +224,7 @@ class _LoginLogo extends StatelessWidget {
             letterSpacing: 1.5,
           ),
         ),
-
         const SizedBox(height: AppSpacing.sm),
-
         const Text(
           'Sign in to your account',
           style: TextStyle(
@@ -355,10 +289,7 @@ class _LoginCard extends StatelessWidget {
                 fontWeight: FontWeight.bold,
               ),
             ),
-
             const SizedBox(height: AppSpacing.xxxl),
-
-            // Error message
             if (errorMessage != null) ...[
               Container(
                 padding: const EdgeInsets.all(AppSpacing.lg),
@@ -388,8 +319,6 @@ class _LoginCard extends StatelessWidget {
               ),
               const SizedBox(height: AppSpacing.xl),
             ],
-
-            // Email
             TextFormField(
               controller: emailController,
               style: const TextStyle(color: AppColors.textPrimary),
@@ -410,21 +339,16 @@ class _LoginCard extends StatelessWidget {
                 return null;
               },
             ),
-
             const SizedBox(height: AppSpacing.xl),
-
-            // Password
             TextFormField(
               controller: passwordController,
               style: const TextStyle(color: AppColors.textPrimary),
               obscureText: obscure,
               decoration: InputDecoration(
                 labelText: 'Password',
-                labelStyle:
-                    const TextStyle(color: AppColors.textSecondary),
+                labelStyle: const TextStyle(color: AppColors.textSecondary),
                 hintText: '••••••••',
-                hintStyle:
-                    const TextStyle(color: AppColors.textDisabled),
+                hintStyle: const TextStyle(color: AppColors.textDisabled),
                 prefixIcon: const Icon(
                   Icons.lock_outline_rounded,
                   color: AppColors.textSecondary,
@@ -445,10 +369,7 @@ class _LoginCard extends StatelessWidget {
                 return null;
               },
             ),
-
             const SizedBox(height: AppSpacing.md),
-
-            // Forgot password
             Align(
               alignment: Alignment.centerRight,
               child: TextButton(
@@ -462,10 +383,7 @@ class _LoginCard extends StatelessWidget {
                 ),
               ),
             ),
-
             const SizedBox(height: AppSpacing.xl),
-
-            // Login button
             SizedBox(
               width: double.infinity,
               height: 54,
@@ -484,17 +402,13 @@ class _LoginCard extends StatelessWidget {
                 label: Text(loading ? 'Signing in...' : 'Sign In'),
               ),
             ),
-
             const SizedBox(height: AppSpacing.xl),
-
-            // Divider
             const Row(
               children: [
                 Expanded(
                     child: Divider(color: AppColors.border, height: 1)),
                 Padding(
-                  padding: EdgeInsets.symmetric(
-                      horizontal: AppSpacing.md),
+                  padding: EdgeInsets.symmetric(horizontal: AppSpacing.md),
                   child: Text(
                     'or continue with',
                     style: TextStyle(
@@ -507,10 +421,7 @@ class _LoginCard extends StatelessWidget {
                     child: Divider(color: AppColors.border, height: 1)),
               ],
             ),
-
             const SizedBox(height: AppSpacing.xl),
-
-            // OAuth buttons - Row 1
             Row(
               children: [
                 Expanded(
@@ -532,10 +443,7 @@ class _LoginCard extends StatelessWidget {
                 ),
               ],
             ),
-
             const SizedBox(height: AppSpacing.md),
-
-            // OAuth buttons - Row 2 (Facebook)
             SizedBox(
               width: double.infinity,
               child: _OAuthButton(
@@ -544,29 +452,6 @@ class _LoginCard extends StatelessWidget {
                 onPressed: loading ? null : onFacebookLogin,
                 color: const Color(0xFF1877F2),
               ),
-            ),
-
-            const SizedBox(height: AppSpacing.xl),
-
-            // Register
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Text(
-                  "Don't have an account? ",
-                  style: TextStyle(color: AppColors.textSecondary),
-                ),
-                GestureDetector(
-                  onTap: () {},
-                  child: const Text(
-                    'Register',
-                    style: TextStyle(
-                      color: AppColors.primary,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-              ],
             ),
           ],
         ),

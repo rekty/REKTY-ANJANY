@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import '../features/about/about_page.dart';
 import '../features/ai/ai_page.dart';
 import '../features/apps/apps_page_supabase.dart';
+import '../features/auth/auth_callback_page.dart';
 import '../features/blog/blog_page_supabase.dart';
 import '../features/contact/contact_page.dart';
 import '../features/downloads/downloads_page_supabase.dart';
@@ -16,6 +17,14 @@ class AppRouter {
 
   static final router = GoRouter(
     initialLocation: '/',
+    errorBuilder: (context, state) {
+      // Handle OAuth callback errors - redirect to callback page
+      if (state.uri.toString().contains('access_token')) {
+        return const AuthCallbackPage();
+      }
+      // Otherwise show home page for unknown routes
+      return const HomePage();
+    },
     routes: [
       GoRoute(
         path: '/',
@@ -56,6 +65,10 @@ class AppRouter {
       GoRoute(
         path: '/login',
         builder: (_, __) => const LoginPage(),
+      ),
+      GoRoute(
+        path: '/auth/callback',
+        builder: (_, __) => const AuthCallbackPage(),
       ),
     ],
   );

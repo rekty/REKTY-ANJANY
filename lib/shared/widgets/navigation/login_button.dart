@@ -6,6 +6,7 @@ import '../../../core/constants/app_duration.dart';
 import '../../../core/constants/app_radius.dart';
 import '../../../core/constants/app_shadow.dart';
 import '../../../core/constants/app_spacing.dart';
+import '../../../core/services/supabase_auth_service.dart';
 
 class LoginButton extends StatefulWidget {
   const LoginButton({super.key});
@@ -16,6 +17,49 @@ class LoginButton extends StatefulWidget {
 
 class _LoginButtonState extends State<LoginButton> {
   bool _hover = false;
+  bool _isLoggedIn = false;
+  final _auth = SupabaseAuthService.instance;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkLoginStatus();
+  }
+
+  void _checkLoginStatus() {
+    setState(() {
+      _isLoggedIn = _auth.isAuthenticated;
+    });
+  }
+
+  Future<void> _logout() async {
+    try {
+      await _auth.signOut();
+      if (mounted) {
+        setState(() {
+          _isLoggedIn = false;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Logout successful'),
+            backgroundColor: AppColors.success,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+        context.go('/');
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Logout failed: $e'),
+            backgroundColor: AppColors.error,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -32,16 +76,18 @@ class _LoginButtonState extends State<LoginButton> {
               : AppShadow.button,
         ),
         child: ElevatedButton.icon(
-          onPressed: () {
-            context.go('/login');
-          },
-          icon: const Icon(
-            Icons.login_rounded,
+          onPressed: _isLoggedIn
+              ? _logout
+              : () {
+                  context.go('/login');
+                },
+          icon: Icon(
+            _isLoggedIn ? Icons.logout_rounded : Icons.login_rounded,
             size: 20,
           ),
-          label: const Text(
-            'Login',
-            style: TextStyle(
+          label: Text(
+            _isLoggedIn ? 'Logout' : 'Login',
+            style: const TextStyle(
               fontWeight: FontWeight.w700,
               fontSize: 15,
             ),
