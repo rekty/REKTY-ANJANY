@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'dart:html' as html;
+import '../config/supabase_config.dart';
 
 /// Supabase Authentication using REST API
 /// More stable than supabase_flutter package on web
@@ -8,8 +9,8 @@ class SupabaseAuthService {
   static SupabaseAuthService? _instance;
   static SupabaseAuthService get instance => _instance ??= SupabaseAuthService._();
 
-  final String supabaseUrl = 'https://tdztcovdwewfsenzrtnq.supabase.co';
-  final String supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRkenRjb3Zkd2V3ZnNlbnpydG5xIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI1NTk5MjksImV4cCI6MjA5ODEzNTkyOX0.8sxWy-VUpq137xDvBewBnIX0rBllFP44oq84PhBWB6w';
+  final String supabaseUrl = SupabaseConfig.supabaseUrl;
+  final String supabaseAnonKey = SupabaseConfig.supabaseAnonKey;
   
   String? _accessToken;
   Map<String, dynamic>? _currentUser;

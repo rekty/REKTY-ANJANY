@@ -37,20 +37,33 @@ class _AuthCallbackPageState extends State<AuthCallbackPage> {
     try {
       // Parse URL untuk access_token
       final currentUrl = html.window.location.href;
+      print('🔍 [AuthCallback] Current URL: $currentUrl');
+      
       final uri = Uri.parse(currentUrl);
       
       String? accessToken;
       String? refreshToken;
       
-      // Parse fragment (hash) parameters
+      // Try to parse from fragment (hash) first
       if (uri.fragment.isNotEmpty) {
+        print('🔍 [AuthCallback] Parsing from fragment: ${uri.fragment}');
         final fragmentParams = Uri.splitQueryString(uri.fragment);
         accessToken = fragmentParams['access_token'];
         refreshToken = fragmentParams['refresh_token'];
       }
       
+      // If not in fragment, try query parameters
+      if (accessToken == null && uri.queryParameters.isNotEmpty) {
+        print('🔍 [AuthCallback] Parsing from query params');
+        accessToken = uri.queryParameters['access_token'];
+        refreshToken = uri.queryParameters['refresh_token'];
+      }
+      
+      print('🔍 [AuthCallback] Access token found: ${accessToken != null}');
+      
       // Save session if token found
       if (accessToken != null && accessToken.isNotEmpty) {
+        print('✅ [AuthCallback] Saving OAuth session...');
         await _auth.saveOAuthSession(accessToken);
         
         setState(() {
@@ -59,15 +72,16 @@ class _AuthCallbackPageState extends State<AuthCallbackPage> {
           _message = 'Login successful! Redirecting...';
         });
         
-        // Wait a bit then redirect
+        print('✅ [AuthCallback] Session saved, redirecting to home...');
+        
+        // Wait a bit then redirect using JavaScript (more reliable for hash routing)
         await Future.delayed(const Duration(milliseconds: 1500));
         
-        // Redirect to home using go_router
-        if (mounted) {
-          context.go('/');
-        }
+        // Use JavaScript redirect for more reliable navigation
+        html.window.location.href = 'https://rekty-anjany-5a2eb.web.app/#/';
       } else {
         // No token found
+        print('❌ [AuthCallback] No access token found in URL');
         setState(() {
           _success = false;
           _processing = false;
@@ -75,6 +89,7 @@ class _AuthCallbackPageState extends State<AuthCallbackPage> {
         });
       }
     } catch (e) {
+      print('❌ [AuthCallback] Error: $e');
       setState(() {
         _success = false;
         _processing = false;

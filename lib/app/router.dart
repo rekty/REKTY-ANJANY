@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../features/about/about_page.dart';
@@ -11,19 +12,51 @@ import '../features/gallery/gallery_page_supabase.dart';
 import '../features/home/home_page.dart';
 import '../features/login/login_page.dart';
 import '../features/store/store_page_supabase.dart';
+import '../features/admin/admin_layout.dart';
+import '../features/admin/dashboard/admin_dashboard_page.dart';
+import '../features/admin/apps/admin_apps_page.dart';
+import '../features/admin/downloads/admin_downloads_page.dart';
+import '../core/middleware/admin_guard.dart';
 
 class AppRouter {
   AppRouter._();
 
   static final router = GoRouter(
     initialLocation: '/',
+    debugLogDiagnostics: true,
     errorBuilder: (context, state) {
-      // Handle OAuth callback errors - redirect to callback page
-      if (state.uri.toString().contains('access_token')) {
+      print('🔴 [Router] Error for URI: ${state.uri}');
+      print('🔴 [Router] Error: ${state.error}');
+      
+      // Handle OAuth callback - check both path and query
+      final uriString = state.uri.toString();
+      if (uriString.contains('access_token') || 
+          state.uri.path == '/auth/callback' ||
+          uriString.contains('/auth/callback')) {
+        print('✅ [Router] Detected OAuth callback, showing AuthCallbackPage');
         return const AuthCallbackPage();
       }
-      // Otherwise show home page for unknown routes
-      return const HomePage();
+      
+      // Show error page for other unknown routes
+      return Scaffold(
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(Icons.error, size: 64, color: Colors.red),
+              const SizedBox(height: 16),
+              Text('Route not found: ${state.uri.path}'),
+              const SizedBox(height: 8),
+              Text('Error: ${state.error}'),
+              const SizedBox(height: 16),
+              ElevatedButton(
+                onPressed: () => context.go('/'),
+                child: const Text('Go Home'),
+              ),
+            ],
+          ),
+        ),
+      );
     },
     routes: [
       GoRoute(
@@ -69,6 +102,26 @@ class AppRouter {
       GoRoute(
         path: '/auth/callback',
         builder: (_, __) => const AuthCallbackPage(),
+      ),
+      
+      // Admin routes - Auth check dilakukan di masing-masing page
+      ShellRoute(
+        builder: (context, state, child) => AdminLayout(child: child),
+        routes: [
+          GoRoute(
+            path: '/admin',
+            builder: (_, __) => const AdminDashboardPage(),
+          ),
+          GoRoute(
+            path: '/admin/apps',
+            builder: (_, __) => const AdminAppsPage(),
+          ),
+          GoRoute(
+            path: '/admin/downloads',
+            builder: (_, __) => const AdminDownloadsPage(),
+          ),
+          // More admin routes will be added here (store, gallery, blog, etc.)
+        ],
       ),
     ],
   );
