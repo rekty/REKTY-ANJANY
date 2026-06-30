@@ -163,12 +163,7 @@ class _AdminAppsPageState extends State<AdminAppsPage> {
                 ),
                 const Spacer(),
                 ElevatedButton.icon(
-                  onPressed: () {
-                    // TODO: Navigate to create app page
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Create app form coming soon')),
-                    );
-                  },
+                  onPressed: () => context.go('/admin/apps/create'),
                   icon: const Icon(Icons.add_rounded),
                   label: const Text('New App'),
                   style: ElevatedButton.styleFrom(
@@ -206,9 +201,7 @@ class _AdminAppsPageState extends State<AdminAppsPage> {
                             ),
                             const SizedBox(height: AppSpacing.lg),
                             ElevatedButton.icon(
-                              onPressed: () {
-                                // TODO: Navigate to create
-                              },
+                              onPressed: () => context.go('/admin/apps/create'),
                               icon: const Icon(Icons.add_rounded),
                               label: const Text('Create First App'),
                             ),
@@ -224,12 +217,7 @@ class _AdminAppsPageState extends State<AdminAppsPage> {
                             padding: const EdgeInsets.only(bottom: AppSpacing.lg),
                             child: _AppCard(
                               app: app,
-                              onEdit: () {
-                                // TODO: Navigate to edit page
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(content: Text('Edit form coming soon')),
-                                );
-                              },
+                              onEdit: () => context.go('/admin/apps/edit/${app['id']}'),
                               onDelete: () => _deleteApp(app['id']),
                             ),
                           );

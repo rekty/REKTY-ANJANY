@@ -163,11 +163,7 @@ class _AdminDownloadsPageState extends State<AdminDownloadsPage> {
                 ),
                 const Spacer(),
                 ElevatedButton.icon(
-                  onPressed: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Upload form coming soon')),
-                    );
-                  },
+                  onPressed: () => context.go('/admin/downloads/create'),
                   icon: const Icon(Icons.upload_rounded),
                   label: const Text('Upload File'),
                   style: ElevatedButton.styleFrom(
@@ -205,7 +201,7 @@ class _AdminDownloadsPageState extends State<AdminDownloadsPage> {
                             ),
                             const SizedBox(height: AppSpacing.lg),
                             ElevatedButton.icon(
-                              onPressed: () {},
+                              onPressed: () => context.go('/admin/downloads/create'),
                               icon: const Icon(Icons.upload_rounded),
                               label: const Text('Upload First File'),
                             ),
@@ -221,11 +217,7 @@ class _AdminDownloadsPageState extends State<AdminDownloadsPage> {
                             padding: const EdgeInsets.only(bottom: AppSpacing.lg),
                             child: _DownloadCard(
                               download: download,
-                              onEdit: () {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(content: Text('Edit form coming soon')),
-                                );
-                              },
+                              onEdit: () => context.go('/admin/downloads/edit/${download['id']}'),
                               onDelete: () => _deleteDownload(download['id']),
                             ),
                           );

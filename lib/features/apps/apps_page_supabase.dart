@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 
 import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_radius.dart';
 import '../../core/constants/app_shadow.dart';
 import '../../core/constants/app_spacing.dart';
-// import '../../core/services/supabase_service.dart'; // TEMPORARILY DISABLED
+import '../../core/config/supabase_config.dart';
 import '../../shared/layout/app_scaffold.dart';
 import '../../shared/layout/responsive_container.dart';
 import '../../shared/layout/section_title.dart';
@@ -53,9 +55,8 @@ class _AppsList extends StatefulWidget {
 }
 
 class _AppsListState extends State<_AppsList> {
-  // final _supabase = SupabaseService.instance; // TEMPORARILY DISABLED
   List<Map<String, dynamic>> _apps = [];
-  bool _loading = false; // Changed to false - no loading
+  bool _loading = true;
   String? _error;
 
   @override
@@ -65,83 +66,29 @@ class _AppsListState extends State<_AppsList> {
   }
 
   Future<void> _loadApps() async {
+    setState(() {
+      _loading = true;
+      _error = null;
+    });
+
     try {
-      // final apps = await _supabase.getApps(limit: 20); // TEMPORARILY DISABLED
-      // Dummy data for now
-      final apps = <Map<String, dynamic>>[
-        {
-          'id': '1',
-          'name': 'Rekty AI',
-          'tagline': 'Your Intelligent AI Companion',
-          'description': 'Advanced AI assistant combining powerful chat capabilities with creative image generation. Experience the future of AI interaction with context-aware conversations, multi-model support, and stunning visual content creation.',
-          'version': 'v1.0.0',
-          'platform': 'Android',
-          'icon': 'smart_toy_rounded',
-          'color': '#818CF8',
-          'download_url': '#',
-          'features': [
-            'Multi-Model AI Chat',
-            'Text-to-Image Generation',
-            'Context Memory',
-            'Offline Mode',
-          ],
+      final response = await http.get(
+        Uri.parse('${SupabaseConfig.supabaseUrl}/rest/v1/apps?select=*&order=created_at.desc'),
+        headers: {
+          'apikey': SupabaseConfig.supabaseAnonKey,
+          'Content-Type': 'application/json',
         },
-        {
-          'id': '2',
-          'name': 'Rekty POS',
-          'tagline': 'Modern Point of Sale System',
-          'description': 'Complete retail management solution built for modern businesses. Streamline your sales operations with intuitive inventory tracking, comprehensive reporting, and seamless customer management in one powerful app.',
-          'version': 'v1.0.0',
-          'platform': 'Android',
-          'icon': 'point_of_sale_rounded',
-          'color': '#34D399',
-          'download_url': '#',
-          'features': [
-            'Sales Management',
-            'Inventory Control',
-            'Customer Database',
-            'Analytics Dashboard',
-          ],
-        },
-        {
-          'id': '3',
-          'name': 'Portfolio Manager',
-          'tagline': 'Showcase Your Work Beautifully',
-          'description': 'Professional portfolio management app designed for creatives, developers, and designers. Create stunning project showcases, manage client work, and build your personal brand with customizable templates.',
-          'version': 'v1.2.0',
-          'platform': 'Cross-Platform',
-          'icon': 'storefront_rounded',
-          'color': '#54C5F8',
-          'download_url': '#',
-          'features': [
-            'Project Gallery',
-            'Client Management',
-            'Custom Templates',
-            'Export & Share',
-          ],
-        },
-        {
-          'id': '4',
-          'name': 'DevTools Pro',
-          'tagline': 'Developer Productivity Suite',
-          'description': 'Essential toolkit for modern developers featuring code snippet management, API testing, color tools, and JSON utilities. Boost your productivity with this all-in-one development companion.',
-          'version': 'v2.0.0',
-          'platform': 'Web',
-          'icon': 'photo_library_rounded',
-          'color': '#F59E0B',
-          'download_url': '#',
-          'features': [
-            'Code Snippets Library',
-            'API Tester',
-            'Color Utilities',
-            'JSON Tools',
-          ],
-        },
-      ];
-      setState(() {
-        _apps = apps;
-        _loading = false;
-      });
+      );
+
+      if (response.statusCode == 200) {
+        final List<dynamic> data = json.decode(response.body);
+        setState(() {
+          _apps = data.cast<Map<String, dynamic>>();
+          _loading = false;
+        });
+      } else {
+        throw Exception('Failed to load apps');
+      }
     } catch (e) {
       setState(() {
         _error = e.toString();
@@ -304,16 +251,7 @@ class _AppDetailCardState extends State<_AppDetailCard> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         // Icon
-        Container(
-          width: 88,
-          height: 88,
-          decoration: BoxDecoration(
-            color: _color.withValues(alpha: .12),
-            borderRadius: AppRadius.card,
-            border: Border.all(color: _color.withValues(alpha: .25)),
-          ),
-          child: Icon(_icon, color: _color, size: 44),
-        ),
+        _buildIconWidget(88, 44),
         const SizedBox(width: AppSpacing.xxxl),
         Expanded(child: _buildContent()),
       ],
@@ -324,19 +262,37 @@ class _AppDetailCardState extends State<_AppDetailCard> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Container(
-          width: 72,
-          height: 72,
-          decoration: BoxDecoration(
-            color: _color.withValues(alpha: .12),
-            borderRadius: AppRadius.card,
-            border: Border.all(color: _color.withValues(alpha: .25)),
-          ),
-          child: Icon(_icon, color: _color, size: 36),
-        ),
+        _buildIconWidget(72, 36),
         const SizedBox(height: AppSpacing.xl),
         _buildContent(),
       ],
+    );
+  }
+
+  Widget _buildIconWidget(double size, double iconSize) {
+    final iconStr = widget.app['icon'] as String?;
+    final isImageUrl = iconStr != null && (iconStr.startsWith('http://') || iconStr.startsWith('https://'));
+
+    return Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(
+        color: _color.withValues(alpha: .12),
+        borderRadius: AppRadius.card,
+        border: Border.all(color: _color.withValues(alpha: .25)),
+      ),
+      child: isImageUrl
+          ? ClipRRect(
+              borderRadius: AppRadius.card,
+              child: Image.network(
+                iconStr!,
+                fit: BoxFit.cover,
+                errorBuilder: (context, error, stackTrace) {
+                  return Icon(_icon, color: _color, size: iconSize);
+                },
+              ),
+            )
+          : Icon(_icon, color: _color, size: iconSize),
     );
   }
 

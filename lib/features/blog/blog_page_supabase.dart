@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 
 import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_radius.dart';
 import '../../core/constants/app_spacing.dart';
-// import '../../core/services/supabase_service.dart'; // TEMPORARILY DISABLED
+import '../../core/config/supabase_config.dart';
 import '../../shared/layout/app_scaffold.dart';
 import '../../shared/layout/responsive_container.dart';
 import '../../shared/layout/section_title.dart';
@@ -27,55 +29,44 @@ class _BlogPageSupabaseState extends State<BlogPageSupabase> {
   }
 
   Future<void> _loadPosts() async {
+    setState(() {
+      _isLoading = true;
+      _error = null;
+    });
+
     try {
-      // final posts = await SupabaseService.instance.getBlogPosts(limit: 20); // TEMPORARILY DISABLED
-      // Dummy data for now
-      final posts = <Map<String, dynamic>>[
-        {
-          'id': '1',
-          'title': 'Building Modern Web Apps with Flutter',
-          'excerpt': 'Discover how Flutter Web is revolutionizing web development with its powerful widget system, hot reload, and cross-platform capabilities. Learn best practices for building responsive, beautiful web applications.',
-          'published_at': DateTime.now().subtract(const Duration(days: 2)).toIso8601String(),
-          'tag': 'Flutter',
-          'tag_color': '#54C5F8',
-          'read_time': '8 min read',
-          'icon': 'web_rounded',
+      final response = await http.get(
+        Uri.parse('${SupabaseConfig.supabaseUrl}/rest/v1/blog_posts?select=*&is_published=eq.true&order=published_at.desc'),
+        headers: {
+          'apikey': SupabaseConfig.supabaseAnonKey,
+          'Content-Type': 'application/json',
         },
-        {
-          'id': '2',
-          'title': 'Integrating AI into Your Flutter Apps',
-          'excerpt': 'Step-by-step guide to adding AI capabilities like chat, image generation, and natural language processing to your Flutter applications using modern AI APIs and services.',
-          'published_at': DateTime.now().subtract(const Duration(days: 5)).toIso8601String(),
-          'tag': 'AI & ML',
-          'tag_color': '#818CF8',
-          'read_time': '12 min read',
-          'icon': 'smart_toy_rounded',
-        },
-        {
-          'id': '3',
-          'title': 'Building a Point of Sale System from Scratch',
-          'excerpt': 'Complete tutorial on creating a production-ready POS system with inventory management, sales tracking, and real-time analytics. Includes database design and offline support.',
-          'published_at': DateTime.now().subtract(const Duration(days: 8)).toIso8601String(),
-          'tag': 'Backend',
-          'tag_color': '#34D399',
-          'read_time': '15 min read',
-          'icon': 'dns_rounded',
-        },
-        {
-          'id': '4',
-          'title': 'Modern UI/UX Design Principles for 2026',
-          'excerpt': 'Explore the latest trends in user interface design including glassmorphism, mesh gradients, micro-interactions, and accessibility-first design approaches that modern users expect.',
-          'published_at': DateTime.now().subtract(const Duration(days: 12)).toIso8601String(),
-          'tag': 'Design',
-          'tag_color': '#F59E0B',
-          'read_time': '10 min read',
-          'icon': 'palette_rounded',
-        },
-      ];
-      setState(() {
-        _posts = posts;
-        _isLoading = false;
-      });
+      );
+
+      if (response.statusCode == 200) {
+        final List<dynamic> data = json.decode(response.body);
+        setState(() {
+          _posts = data.cast<Map<String, dynamic>>();
+          // Add 1 sample dummy data if empty
+          if (_posts.isEmpty) {
+            _posts = [
+              {
+                'id': 'sample-1',
+                'title': 'Welcome to Our Blog',
+                'excerpt': 'This is a sample blog post. Add your own blog posts from admin panel!',
+                'published_at': DateTime.now().toIso8601String(),
+                'tag': 'Announcement',
+                'tag_color': '#54C5F8',
+                'read_time': 5,
+                'icon': 'article_rounded',
+              }
+            ];
+          }
+          _isLoading = false;
+        });
+      } else {
+        throw Exception('Failed to load blog posts');
+      }
     } catch (e) {
       setState(() {
         _error = e.toString();

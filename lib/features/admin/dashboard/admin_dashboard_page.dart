@@ -18,74 +18,11 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
   final _authService = SupabaseAuthService.instance;
   Map<String, dynamic> _stats = {};
   bool _loading = true;
-  bool _checkingAuth = true;
 
   @override
   void initState() {
     super.initState();
-    _checkAdminAccess();
-  }
-
-  Future<void> _checkAdminAccess() async {
-    print('🔍 [DEBUG] Starting admin access check...');
-    
-    // TEMPORARY: Skip auth check for testing
-    print('⚠️ [DEBUG] SKIPPING AUTH CHECK FOR TESTING');
-    setState(() => _checkingAuth = false);
     _loadStats();
-    return;
-    
-    /* Original auth check - commented out for testing
-    // Check if user is logged in
-    final user = _authService.currentUser;
-    print('🔍 [DEBUG] Current user: $user');
-    
-    if (user == null) {
-      print('❌ [DEBUG] No user found, redirecting to login');
-      // Not logged in, redirect to login
-      if (mounted) {
-        context.go('/login?redirect=/admin');
-      }
-      return;
-    }
-
-    // Set access token
-    final token = _authService.accessToken;
-    print('🔍 [DEBUG] Access token: ${token?.substring(0, 20)}...');
-    
-    if (token != null) {
-      _adminService.setAccessToken(token);
-    } else {
-      print('⚠️ [DEBUG] No access token found!');
-    }
-
-    // Check if user is admin
-    final userEmail = user['email'] ?? '';
-    print('🔍 [DEBUG] Checking if email is admin: $userEmail');
-    
-    final isAdmin = await _adminService.isAdmin(userEmail);
-    print('🔍 [DEBUG] isAdmin result: $isAdmin');
-    
-    if (!isAdmin) {
-      print('❌ [DEBUG] User is NOT admin, redirecting to home');
-      // Not admin, redirect to home
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Access denied: Admin privileges required'),
-            backgroundColor: Colors.red,
-          ),
-        );
-        context.go('/');
-      }
-      return;
-    }
-
-    print('✅ [DEBUG] User is admin! Loading stats...');
-    // User is admin, load stats
-    setState(() => _checkingAuth = false);
-    _loadStats();
-    */
   }
 
   Future<void> _loadStats() async {
@@ -108,15 +45,6 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
 
   @override
   Widget build(BuildContext context) {
-    if (_checkingAuth) {
-      return const Scaffold(
-        backgroundColor: AppColors.background,
-        body: Center(
-          child: CircularProgressIndicator(color: AppColors.primary),
-        ),
-      );
-    }
-
     return Scaffold(
       backgroundColor: AppColors.background,
       body: SingleChildScrollView(

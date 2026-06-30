@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 
 import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_radius.dart';
 import '../../core/constants/app_shadow.dart';
 import '../../core/constants/app_spacing.dart';
-// import '../../core/services/supabase_service.dart'; // TEMPORARILY DISABLED
+import '../../core/config/supabase_config.dart';
 import '../../shared/layout/app_scaffold.dart';
 import '../../shared/layout/responsive_container.dart';
 import '../../shared/layout/section_title.dart';
@@ -53,99 +55,57 @@ class _DownloadsList extends StatefulWidget {
 }
 
 class _DownloadsListState extends State<_DownloadsList> {
-  // final _supabase = SupabaseService.instance; // TEMPORARILY DISABLED
-  List<Map<String, dynamic>> _apps = [];
-  bool _loading = false; // Changed to false
+  List<Map<String, dynamic>> _downloads = [];
+  bool _loading = true;
   String? _error;
 
   @override
   void initState() {
     super.initState();
-    _loadApps();
+    _loadDownloads();
   }
 
-  Future<void> _loadApps() async {
+  Future<void> _loadDownloads() async {
+    setState(() {
+      _loading = true;
+      _error = null;
+    });
+
     try {
-      // final apps = await _supabase.getApps(limit: 20); // TEMPORARILY DISABLED
-      // Dummy data for now
-      final apps = <Map<String, dynamic>>[
-        {
-          'id': '1',
-          'name': 'Rekty AI - AI Assistant',
-          'description': 'Intelligent AI chat assistant with image generation powered by advanced AI models. Generate creative content and get instant answers.',
-          'version': 'v1.0.0',
-          'platform': 'Android',
-          'file_size': '25 MB',
-          'download_url': '#',
-          'source_url': 'https://github.com',
-          'icon': 'smart_toy_rounded',
-          'color': '#818CF8',
-          'features': [
-            'AI Chat with Context Awareness',
-            'Text-to-Image Generation',
-            'Multiple AI Model Support',
-            'Modern Material Design UI',
-          ],
+      final response = await http.get(
+        Uri.parse('${SupabaseConfig.supabaseUrl}/rest/v1/downloads?select=*&order=created_at.desc'),
+        headers: {
+          'apikey': SupabaseConfig.supabaseAnonKey,
+          'Content-Type': 'application/json',
         },
-        {
-          'id': '2',
-          'name': 'Rekty POS - Point of Sale',
-          'description': 'Modern point of sale system for retail businesses with inventory management, sales tracking, and customer management features.',
-          'version': 'v1.0.0',
-          'platform': 'Android',
-          'file_size': '18 MB',
-          'download_url': '#',
-          'source_url': 'https://github.com',
-          'icon': 'point_of_sale_rounded',
-          'color': '#34D399',
-          'features': [
-            'Real-time Sales Tracking',
-            'Inventory Management',
-            'Customer Database',
-            'Sales Reports & Analytics',
-          ],
-        },
-        {
-          'id': '3',
-          'name': 'Flutter UI Kit Pro',
-          'description': 'Complete UI kit with 100+ ready-to-use widgets and components for building beautiful Flutter applications faster.',
-          'version': 'v2.1.0',
-          'platform': 'Cross-Platform',
-          'file_size': '8 MB',
-          'download_url': '#',
-          'source_url': 'https://github.com',
-          'icon': 'android_rounded',
-          'color': '#54C5F8',
-          'features': [
-            '100+ Premium Widgets',
-            'Dark & Light Theme Support',
-            'Responsive Layouts',
-            'Animation Library',
-          ],
-        },
-        {
-          'id': '4',
-          'name': 'Developer Tools Bundle',
-          'description': 'Essential developer tools package including code snippets, utilities, and productivity boosters for modern development.',
-          'version': 'v1.3.0',
-          'platform': 'Web / Desktop',
-          'file_size': '12 MB',
-          'download_url': '#',
-          'source_url': 'https://github.com',
-          'icon': 'android_rounded',
-          'color': '#F59E0B',
-          'features': [
-            'Code Snippet Manager',
-            'API Testing Tools',
-            'Color Palette Generator',
-            'JSON Formatter & Validator',
-          ],
-        },
-      ];
-      setState(() {
-        _apps = apps;
-        _loading = false;
-      });
+      );
+
+      if (response.statusCode == 200) {
+        final List<dynamic> data = json.decode(response.body);
+        setState(() {
+          _downloads = data.cast<Map<String, dynamic>>();
+          // Add 1 sample dummy data if empty
+          if (_downloads.isEmpty) {
+            _downloads = [
+              {
+                'id': 'sample-1',
+                'name': 'Sample Download',
+                'description': 'This is a sample download. Add your own downloads from admin panel!',
+                'version': 'v1.0.0',
+                'platform': 'Android',
+                'file_size': '10 MB',
+                'download_url': '#',
+                'icon': 'download_rounded',
+                'color': '#34D399',
+                'features': ['Sample Feature 1', 'Sample Feature 2'],
+              }
+            ];
+          }
+          _loading = false;
+        });
+      } else {
+        throw Exception('Failed to load downloads');
+      }
     } catch (e) {
       setState(() {
         _error = e.toString();
@@ -201,7 +161,7 @@ class _DownloadsListState extends State<_DownloadsList> {
                       _loading = true;
                       _error = null;
                     });
-                    _loadApps();
+                    _loadDownloads();
                   },
                   icon: const Icon(Icons.refresh_rounded),
                   label: const Text('Retry'),
@@ -213,7 +173,7 @@ class _DownloadsListState extends State<_DownloadsList> {
       );
     }
 
-    if (_apps.isEmpty) {
+    if (_downloads.isEmpty) {
       return const ResponsiveContainer(
         child: Center(
           child: Padding(
@@ -232,7 +192,7 @@ class _DownloadsListState extends State<_DownloadsList> {
 
     return ResponsiveContainer(
       child: Column(
-        children: _apps
+        children: _downloads
             .map((app) => Padding(
                   padding: const EdgeInsets.only(bottom: AppSpacing.xxxl),
                   child: _DownloadCard(data: app),
@@ -275,6 +235,33 @@ class _DownloadCardState extends State<_DownloadCard> {
       default:
         return Icons.download_rounded;
     }
+  }
+
+  Widget _buildIconWidget(double size, double iconSize) {
+    final iconStr = widget.data['icon'] as String?;
+    final isImageUrl = iconStr != null && (iconStr.startsWith('http://') || iconStr.startsWith('https://'));
+
+    return Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(
+        color: _color.withValues(alpha: .12),
+        borderRadius: AppRadius.card,
+        border: Border.all(color: _color.withValues(alpha: .25)),
+      ),
+      child: isImageUrl
+          ? ClipRRect(
+              borderRadius: AppRadius.card,
+              child: Image.network(
+                iconStr!,
+                fit: BoxFit.cover,
+                errorBuilder: (context, error, stackTrace) {
+                  return Icon(_icon, color: _color, size: iconSize);
+                },
+              ),
+            )
+          : Icon(_icon, color: _color, size: iconSize),
+    );
   }
 
   IconData get _platformIcon {
@@ -323,16 +310,7 @@ class _DownloadCardState extends State<_DownloadCard> {
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Container(
-                  width: 72,
-                  height: 72,
-                  decoration: BoxDecoration(
-                    color: _color.withValues(alpha: .12),
-                    borderRadius: AppRadius.card,
-                    border: Border.all(color: _color.withValues(alpha: .25)),
-                  ),
-                  child: Icon(_icon, color: _color, size: 36),
-                ),
+                _buildIconWidget(72, 36),
                 const SizedBox(width: AppSpacing.xl),
                 Expanded(
                   child: Column(

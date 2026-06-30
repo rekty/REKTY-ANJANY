@@ -1,0 +1,9 @@
+class SupabaseConfig {
+  // Supabase credentials from https://app.supabase.com/project/_/settings/api
+  
+  // TODO: Copy this file to supabase_config.dart and fill in your credentials
+  // DO NOT commit supabase_config.dart to git!
+  
+  static const String supabaseUrl = 'https://YOUR_PROJECT_ID.supabase.co';
+  static const String supabaseAnonKey = 'YOUR_SUPABASE_ANON_KEY_HERE';
+}

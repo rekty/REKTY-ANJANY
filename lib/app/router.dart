@@ -15,8 +15,21 @@ import '../features/store/store_page_supabase.dart';
 import '../features/admin/admin_layout.dart';
 import '../features/admin/dashboard/admin_dashboard_page.dart';
 import '../features/admin/apps/admin_apps_page.dart';
+import '../features/admin/apps/admin_app_form_page.dart';
 import '../features/admin/downloads/admin_downloads_page.dart';
+import '../features/admin/downloads/admin_download_form_page.dart';
+import '../features/admin/store/admin_store_page.dart';
+import '../features/admin/store/admin_product_form_page.dart';
+import '../features/admin/gallery/admin_gallery_page.dart';
+import '../features/admin/gallery/admin_gallery_form_page.dart';
+import '../features/admin/blog/admin_blog_page.dart';
+import '../features/admin/blog/admin_blog_form_page.dart';
+import '../features/admin/about/admin_about_page.dart';
+import '../features/admin/messages/admin_messages_page.dart';
+import '../features/admin/contact/admin_contact_page.dart';
 import '../core/middleware/admin_guard.dart';
+import '../core/services/supabase_auth_service.dart';
+import '../core/services/admin_service.dart';
 
 class AppRouter {
   AppRouter._();
@@ -24,6 +37,42 @@ class AppRouter {
   static final router = GoRouter(
     initialLocation: '/',
     debugLogDiagnostics: true,
+    redirect: (context, state) async {
+      final path = state.uri.path;
+      
+      // Skip auth check for non-admin routes
+      if (!path.startsWith('/admin')) {
+        return null;
+      }
+      
+      // Check if user is logged in
+      final authService = SupabaseAuthService.instance;
+      final user = authService.currentUser;
+      
+      if (user == null) {
+        // Not logged in, redirect to login
+        return '/login?redirect=${Uri.encodeComponent(path)}';
+      }
+      
+      // Check if user is admin
+      final adminService = AdminService.instance;
+      final token = authService.accessToken;
+      
+      if (token != null) {
+        adminService.setAccessToken(token);
+      }
+      
+      final userEmail = user['email'] ?? '';
+      final isAdmin = await adminService.isAdmin(userEmail);
+      
+      if (!isAdmin) {
+        // Not admin, redirect to home
+        return '/';
+      }
+      
+      // User is admin, allow access
+      return null;
+    },
     errorBuilder: (context, state) {
       print('🔴 [Router] Error for URI: ${state.uri}');
       print('🔴 [Router] Error: ${state.error}');
@@ -117,10 +166,83 @@ class AppRouter {
             builder: (_, __) => const AdminAppsPage(),
           ),
           GoRoute(
+            path: '/admin/apps/create',
+            builder: (_, __) => const AdminAppFormPage(),
+          ),
+          GoRoute(
+            path: '/admin/apps/edit/:id',
+            builder: (_, state) => AdminAppFormPage(
+              appId: state.pathParameters['id'],
+            ),
+          ),
+          GoRoute(
             path: '/admin/downloads',
             builder: (_, __) => const AdminDownloadsPage(),
           ),
-          // More admin routes will be added here (store, gallery, blog, etc.)
+          GoRoute(
+            path: '/admin/downloads/create',
+            builder: (_, __) => const AdminDownloadFormPage(),
+          ),
+          GoRoute(
+            path: '/admin/downloads/edit/:id',
+            builder: (_, state) => AdminDownloadFormPage(
+              downloadId: state.pathParameters['id'],
+            ),
+          ),
+          GoRoute(
+            path: '/admin/store',
+            builder: (_, __) => const AdminStorePage(),
+          ),
+          GoRoute(
+            path: '/admin/store/create',
+            builder: (_, __) => const AdminProductFormPage(),
+          ),
+          GoRoute(
+            path: '/admin/store/edit/:id',
+            builder: (_, state) => AdminProductFormPage(
+              productId: state.pathParameters['id'],
+            ),
+          ),
+          GoRoute(
+            path: '/admin/gallery',
+            builder: (_, __) => const AdminGalleryPage(),
+          ),
+          GoRoute(
+            path: '/admin/gallery/create',
+            builder: (_, __) => const AdminGalleryFormPage(),
+          ),
+          GoRoute(
+            path: '/admin/gallery/edit/:id',
+            builder: (_, state) => AdminGalleryFormPage(
+              itemId: state.pathParameters['id'],
+            ),
+          ),
+          GoRoute(
+            path: '/admin/blog',
+            builder: (_, __) => const AdminBlogPage(),
+          ),
+          GoRoute(
+            path: '/admin/blog/create',
+            builder: (_, __) => const AdminBlogFormPage(),
+          ),
+          GoRoute(
+            path: '/admin/blog/edit/:id',
+            builder: (_, state) => AdminBlogFormPage(
+              postId: state.pathParameters['id'],
+            ),
+          ),
+          GoRoute(
+            path: '/admin/about',
+            builder: (_, __) => const AdminAboutPage(),
+          ),
+          GoRoute(
+            path: '/admin/messages',
+            builder: (_, __) => const AdminMessagesPage(),
+          ),
+          GoRoute(
+            path: '/admin/contact',
+            builder: (_, __) => const AdminContactPage(),
+          ),
         ],
       ),
     ],

@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 
 import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_radius.dart';
 import '../../core/constants/app_shadow.dart';
 import '../../core/constants/app_spacing.dart';
-// import '../../core/services/supabase_service.dart'; // TEMPORARILY DISABLED
+import '../../core/config/supabase_config.dart';
 import '../../shared/layout/app_scaffold.dart';
 import '../../shared/layout/responsive_container.dart';
 import '../../shared/layout/section_title.dart';
@@ -37,54 +39,41 @@ class _GalleryPageSupabaseState extends State<GalleryPageSupabase> {
   }
 
   Future<void> _loadItems() async {
-    setState(() => _isLoading = true);
+    setState(() {
+      _isLoading = true;
+      _error = null;
+    });
+
     try {
-      // final items = await SupabaseService.instance.getGalleryItems( // TEMPORARILY DISABLED
-      // Dummy data for now
-      final items = <Map<String, dynamic>>[
-        {
-          'id': '1',
-          'title': 'Rekty AI Mobile App Design',
-          'image_url': 'https://images.unsplash.com/photo-1551650975-87deedd944c3?w=800&h=600&fit=crop',
-          'category': 'Mobile',
+      final response = await http.get(
+        Uri.parse('${SupabaseConfig.supabaseUrl}/rest/v1/gallery_items?select=*&order=display_order.asc,created_at.desc'),
+        headers: {
+          'apikey': SupabaseConfig.supabaseAnonKey,
+          'Content-Type': 'application/json',
         },
-        {
-          'id': '2',
-          'title': 'Modern Dashboard Interface',
-          'image_url': 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=800&h=600&fit=crop',
-          'category': 'Web',
-        },
-        {
-          'id': '3',
-          'title': 'Brand Identity Package',
-          'image_url': 'https://images.unsplash.com/photo-1561070791-2526d30994b5?w=800&h=600&fit=crop',
-          'category': 'Design',
-        },
-        {
-          'id': '4',
-          'title': 'UI Component Library',
-          'image_url': 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=800&h=600&fit=crop',
-          'category': 'UI Design',
-        },
-        {
-          'id': '5',
-          'title': 'E-Commerce App Concept',
-          'image_url': 'https://images.unsplash.com/photo-1472851294608-062f824d29cc?w=800&h=600&fit=crop',
-          'category': 'Mobile',
-        },
-        {
-          'id': '6',
-          'title': 'Portfolio Website Design',
-          'image_url': 'https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=800&h=600&fit=crop',
-          'category': 'Web',
-        },
-      ];
-      //  category: _selectedCategory,
-      // );
-      setState(() {
-        _items = items;
-        _isLoading = false;
-      });
+      );
+
+      if (response.statusCode == 200) {
+        final List<dynamic> data = json.decode(response.body);
+        setState(() {
+          _items = data.cast<Map<String, dynamic>>();
+          // Add 1 sample dummy data if empty
+          if (_items.isEmpty) {
+            _items = [
+              {
+                'id': 'sample-1',
+                'title': 'Sample Gallery Image',
+                'image_url': 'https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=800&h=600&fit=crop',
+                'category': 'Design',
+                'description': 'This is a sample image. Add your own gallery items from admin panel!',
+              }
+            ];
+          }
+          _isLoading = false;
+        });
+      } else {
+        throw Exception('Failed to load gallery items');
+      }
     } catch (e) {
       setState(() {
         _error = e.toString();

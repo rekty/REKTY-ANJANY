@@ -1,238 +1,292 @@
-# Rekty Anjany - Personal Portfolio & Admin Panel
+# Rekty Anjany Portfolio
 
-A modern, responsive personal portfolio website built with Flutter Web, featuring a powerful admin panel for content management.
+A modern, full-stack portfolio website built with Flutter and Supabase, featuring a complete admin panel for content management.
 
-![Flutter](https://img.shields.io/badge/Flutter-3.32.8-blue)
-![Dart](https://img.shields.io/badge/Dart-3.8.1-blue)
-![Firebase](https://img.shields.io/badge/Firebase-Hosting-orange)
-![Supabase](https://img.shields.io/badge/Supabase-Auth%20%26%20Database-green)
+## 🌐 Live Demo
+
+**Public Website:** [https://rekty-anjany-5a2eb.web.app](https://rekty-anjany-5a2eb.web.app)
 
 ## ✨ Features
 
-### 🌐 Public Website
-- **Modern UI/UX** - Glassmorphism design with mesh gradient backgrounds
-- **Responsive Design** - Works seamlessly on desktop, tablet, and mobile
-- **Multiple Sections**:
-  - Home - Hero section with profile card
-  - Apps - Showcase of applications
-  - Downloads - File downloads with version tracking
-  - Store - Digital products marketplace
-  - Gallery - Image portfolio
-  - Blog - Articles and posts
-  - About - Personal information
-  - Contact - Contact form and information
-- **AI Chat** - Integrated AI assistant powered by Cloudflare Workers
-- **Authentication** - OAuth login (Google, GitHub, Facebook) via Supabase
+### Public Features
+- 🏠 **Home** - Landing page with hero section
+- 🤖 **AI Integration** - AI-powered features showcase
+- 📱 **Apps** - Showcase of mobile/web applications
+- 📥 **Downloads** - APK and resource downloads
+- 🛒 **Store** - Digital products and tools
+- 🖼️ **Gallery** - Project screenshots and designs
+- 📝 **Blog** - Articles and tutorials
+- 👤 **About** - Personal profile and skills
+- 📧 **Contact** - Contact form and information
 
-### 🔐 Admin Panel
-- **Secure Authentication** - OAuth-based admin access
-- **Role-based Access Control** - Super admin and admin roles
-- **Dashboard** - Statistics and quick actions
-- **Content Management**:
-  - ✅ Apps management (planned)
-  - ✅ Downloads management (planned)
-  - ✅ Products management (planned)
-  - ✅ Gallery management (planned)
-  - ✅ Blog posts management (planned)
-  - ✅ About page editor (planned)
-  - ✅ Contact messages viewer (planned)
-  - ✅ Contact info editor (planned)
+### Admin Panel Features
+- 🔐 **Secure Authentication** - OAuth login (Google, GitHub, Facebook)
+- 🛡️ **Role-Based Access Control** - Email-based admin verification
+- 📊 **Dashboard** - Statistics and analytics
+- ✏️ **Content Management** - Full CRUD for all content types
+- 🖼️ **Image Upload** - Supabase Storage integration
+- 📱 **Responsive Design** - Works on all devices
 
-## 🚀 Tech Stack
+## 🛠️ Tech Stack
 
-- **Frontend**: Flutter Web
-- **Backend**: Supabase (PostgreSQL database + Auth)
-- **Hosting**: Firebase Hosting
-- **AI**: Cloudflare Workers AI
-- **State Management**: StatefulWidgets
-- **Routing**: go_router
-- **HTTP Client**: http package
+### Frontend
+- **Flutter** - Cross-platform UI framework
+- **Dart** - Programming language
+- **go_router** - Declarative routing
+- **http** - API communication
 
-## 📋 Prerequisites
+### Backend
+- **Supabase** - Backend-as-a-Service
+  - PostgreSQL Database
+  - Row Level Security (RLS)
+  - Authentication (OAuth)
+  - Storage (File uploads)
+  - RESTful API
 
-- Flutter SDK 3.32.8 or higher
-- Dart SDK 3.8.1 or higher
-- Firebase CLI
-- Supabase account
-- Git
+### Hosting
+- **Firebase Hosting** - Production deployment
+- **GitHub** - Version control
 
-## 🛠️ Installation
+## 🚀 Getting Started
 
-### 1. Clone the repository
+### Prerequisites
 
-```bash
-git clone https://github.com/your-username/rekty_anjany.git
-cd rekty_anjany
-```
+- [Flutter SDK](https://flutter.dev/docs/get-started/install) (3.0 or higher)
+- [Dart SDK](https://dart.dev/get-dart) (3.0 or higher)
+- [Firebase CLI](https://firebase.google.com/docs/cli) (optional, for deployment)
+- A [Supabase](https://supabase.com) account
+- A code editor (VS Code, Android Studio, etc.)
 
-### 2. Install dependencies
+### Installation
 
-```bash
-flutter pub get
-```
+1. **Clone the repository**
+   ```bash
+   git clone https://github.com/YOUR_USERNAME/rekty_anjany.git
+   cd rekty_anjany
+   ```
 
-### 3. Configure environment variables
+2. **Install dependencies**
+   ```bash
+   flutter pub get
+   ```
 
-Copy `.env.example` to `.env` and fill in your credentials:
+3. **Configure Supabase**
+   
+   a. Copy the example config file:
+   ```bash
+   cp lib/core/config/supabase_config.dart.example lib/core/config/supabase_config.dart
+   ```
+   
+   b. Get your Supabase credentials from [https://app.supabase.com](https://app.supabase.com):
+      - Project URL
+      - Anon/Public Key
+   
+   c. Update `lib/core/config/supabase_config.dart`:
+   ```dart
+   class SupabaseConfig {
+     static const String supabaseUrl = 'YOUR_SUPABASE_URL';
+     static const String supabaseAnonKey = 'YOUR_ANON_KEY';
+   }
+   ```
 
-```bash
-cp .env.example .env
-```
+4. **Set up Supabase Database**
+   
+   Run the SQL schema in your Supabase SQL Editor:
+   ```bash
+   # Copy content from supabase_schema.sql and run in Supabase SQL Editor
+   ```
 
-Edit `.env`:
-```env
-SUPABASE_URL=https://your-project.supabase.co
-SUPABASE_ANON_KEY=your-supabase-anon-key
-CLOUDFLARE_WORKERS_URL=https://your-worker.workers.dev/
-```
+5. **Configure OAuth Providers** (Optional)
+   
+   In Supabase Dashboard → Authentication → Providers:
+   - Enable Google, GitHub, Facebook
+   - Add redirect URLs:
+     - Development: `http://localhost:PORT/auth/callback`
+     - Production: `https://YOUR_DOMAIN/auth/callback`
 
-### 4. Update Supabase Config
+6. **Add Admin Users**
+   
+   In Supabase → Table Editor → `admin_users`:
+   - Insert your email with role `super_admin`
+   
+   Example:
+   ```sql
+   INSERT INTO admin_users (email, role)
+   VALUES ('your.email@example.com', 'super_admin');
+   ```
 
-Edit `lib/core/config/supabase_config.dart` with your Supabase credentials.
+### Development
 
-### 5. Setup Supabase Database
-
-Run the SQL scripts in `supabase_schema.sql` in your Supabase SQL Editor:
-
-1. Create tables
-2. Enable RLS (Row Level Security)
-3. Create policies
-4. Insert your admin email
-
-### 6. Configure Firebase
-
-- Install Firebase CLI: `npm install -g firebase-tools`
-- Login: `firebase login`
-- Initialize: `firebase init hosting`
-
-### 7. Run development server
+Run the app in development mode:
 
 ```bash
 flutter run -d chrome
+# or
+flutter run -d edge
 ```
 
-## 📦 Build & Deploy
+### Build for Production
 
-### Build for production
-
+**Web:**
 ```bash
 flutter build web --release
 ```
 
-### Deploy to Firebase
-
+**Android APK:**
 ```bash
+flutter build apk --release
+```
+
+**Android App Bundle:**
+```bash
+flutter build appbundle --release
+```
+
+### Deployment
+
+**Firebase Hosting:**
+```bash
+firebase login
+firebase init hosting
 firebase deploy --only hosting
 ```
 
-### Combined command
-
-```bash
-flutter build web --release && firebase deploy --only hosting
-```
-
-## 🗂️ Project Structure
+## 📁 Project Structure
 
 ```
 lib/
 ├── app/                    # App configuration
-│   ├── app.dart           # Main app widget
-│   ├── router.dart        # Route configuration
-│   └── theme.dart         # Theme configuration
-├── core/                   # Core utilities
+│   └── router.dart        # Route definitions
+├── core/
 │   ├── config/            # Configuration files
-│   ├── constants/         # Constants (colors, spacing, etc.)
-│   ├── middleware/        # Middleware (auth guards)
-│   ├── services/          # Services (auth, admin, etc.)
-│   └── utils/             # Utility functions
+│   ├── constants/         # App constants
+│   ├── middleware/        # Route guards
+│   └── services/          # API services
 ├── features/              # Feature modules
-│   ├── admin/            # Admin panel
-│   ├── about/            # About page
-│   ├── ai/               # AI chat
-│   ├── apps/             # Apps showcase
-│   ├── auth/             # Authentication
-│   ├── blog/             # Blog
-│   ├── contact/          # Contact
-│   ├── downloads/        # Downloads
-│   ├── gallery/          # Gallery
 │   ├── home/             # Home page
+│   ├── apps/             # Apps showcase
+│   ├── downloads/        # Downloads page
+│   ├── store/            # Store page
+│   ├── gallery/          # Gallery page
+│   ├── blog/             # Blog page
+│   ├── about/            # About page
+│   ├── contact/          # Contact page
+│   ├── auth/             # Authentication
 │   ├── login/            # Login page
-│   └── store/            # Store
-├── shared/                # Shared widgets
-│   └── widgets/          # Reusable widgets
-└── main.dart              # Entry point
+│   └── admin/            # Admin panel
+└── shared/               # Shared widgets
+    └── layout/           # Layout components
 ```
 
-## 🔒 Security
+## 🗄️ Database Schema
 
-- **Environment Variables**: Sensitive data stored in `.env` (not committed to Git)
-- **Row Level Security**: Supabase RLS policies protect database
-- **OAuth Authentication**: Secure login via trusted providers
-- **Admin Access Control**: Role-based permissions
-- **HTTPS Only**: All traffic encrypted
+The project uses the following tables in Supabase:
 
-## 📝 Database Schema
-
-The application uses Supabase PostgreSQL with the following tables:
-
-- `admin_users` - Admin user accounts
-- `apps` - Application showcase items
-- `downloads` - Downloadable files
+- `admin_users` - Admin user management
+- `apps` - Application showcase
+- `downloads` - Downloadable resources
 - `products` - Store products
 - `gallery_items` - Gallery images
 - `blog_posts` - Blog articles
 - `about_me` - About page content
 - `contact_info` - Contact information
 - `contact_messages` - Contact form submissions
+- `analytics` - Usage analytics
 
-See `supabase_schema.sql` for complete schema.
+See `supabase_schema.sql` for full schema definition.
+
+## 🔒 Security
+
+### What's Protected
+
+- ✅ Supabase credentials (via `.gitignore`)
+- ✅ Environment variables (`.env` files)
+- ✅ Firebase config (`.firebase/`)
+- ✅ Admin email addresses (not in code)
+- ✅ OAuth client secrets (in Supabase dashboard)
+
+### What's Public
+
+- ✅ Supabase Anon Key (safe for client-side)
+- ✅ Firebase public config
+- ✅ Database schema
+- ✅ Frontend code
+
+### Row Level Security (RLS)
+
+All tables have RLS enabled:
+- **Public read** access for content
+- **Admin write** access (verified via JWT)
 
 ## 🎨 Customization
 
-### Colors
+### Theme Colors
 
-Edit `lib/core/constants/app_colors.dart` to customize the color scheme.
+Edit `lib/core/constants/app_colors.dart`:
+```dart
+class AppColors {
+  static const primary = Color(0xFF54C5F8);
+  static const background = Color(0xFF0B0E13);
+  // ... more colors
+}
+```
 
-### Spacing
+### Content
 
-Edit `lib/core/constants/app_spacing.dart` to adjust spacing values.
+All content can be managed through the admin panel at `/admin`.
 
-### Fonts
+## 📝 Environment Variables
 
-The app uses system fonts by default. To add custom fonts, edit `pubspec.yaml`.
+Create `.env` file (already in `.gitignore`):
 
-## 🐛 Known Issues
+```env
+SUPABASE_URL=your_supabase_url
+SUPABASE_ANON_KEY=your_anon_key
+```
 
-- Font warning for Noto fonts (cosmetic, doesn't affect functionality)
-- Admin panel content management forms are in development
+**Note:** This project uses a Dart config file instead of `.env` for simplicity.
 
-## 🚧 Roadmap
+## 🤝 Contributing
 
-- [ ] Complete admin panel CRUD forms
-- [ ] File upload functionality
-- [ ] Rich text editor for blog
-- [ ] Email notifications for contact form
-- [ ] Analytics dashboard
-- [ ] Multi-language support
-- [ ] Dark/Light theme toggle
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
 
 ## 📄 License
 
-This project is private and not licensed for public use.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ## 👤 Author
 
 **Rekty Anjany**
-- Website: [rekty-anjany-5a2eb.web.app](https://rekty-anjany-5a2eb.web.app)
-- Developer & Creator
+
+- Website: [https://rekty-anjany-5a2eb.web.app](https://rekty-anjany-5a2eb.web.app)
+- Email: rekty.anjany@gmail.com
+- GitHub: [@YOUR_GITHUB_USERNAME](https://github.com/YOUR_GITHUB_USERNAME)
 
 ## 🙏 Acknowledgments
 
 - Flutter team for the amazing framework
-- Supabase for backend infrastructure
-- Firebase for hosting
-- Cloudflare for AI capabilities
+- Supabase for the backend infrastructure
+- Firebase for hosting services
+- All open-source contributors
+
+## 📞 Support
+
+For support, email rekty.anjany@gmail.com or open an issue on GitHub.
 
 ---
 
-**Note**: This is a personal portfolio project. Please do not use without permission.
+**⚠️ Important Security Notes:**
+
+1. Never commit `supabase_config.dart` to version control
+2. Keep your Supabase Service Role key secret (only use Anon key in client)
+3. Configure RLS policies properly before going to production
+4. Use HTTPS in production
+5. Regularly update dependencies for security patches
+
+---
+
+Made with ❤️ using Flutter & Supabase

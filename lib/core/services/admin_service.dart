@@ -67,12 +67,38 @@ class AdminService {
   }
 
   Future<Map<String, dynamic>> createApp(Map<String, dynamic> data) async {
-    final response = await http.post(
-      Uri.parse('$_baseUrl/apps'),
-      headers: _authHeaders,
-      body: json.encode(data),
-    );
-    return json.decode(response.body);
+    try {
+      print('📤 [AdminService] Creating app with data: $data');
+      
+      final headers = {
+        ..._authHeaders,
+        'Prefer': 'return=representation', // Tell Supabase to return created data
+      };
+      
+      final response = await http.post(
+        Uri.parse('$_baseUrl/apps'),
+        headers: headers,
+        body: json.encode(data),
+      );
+      
+      print('📥 [AdminService] Response status: ${response.statusCode}');
+      print('📥 [AdminService] Response body: ${response.body}');
+      
+      if (response.statusCode >= 200 && response.statusCode < 300) {
+        if (response.body.isEmpty || response.body == '[]') {
+          // INSERT successful but no data returned, that's OK
+          return {'success': true};
+        }
+        // Parse response as array and return first item
+        final List result = json.decode(response.body);
+        return result.isNotEmpty ? result[0] : {'success': true};
+      } else {
+        throw Exception('Server returned ${response.statusCode}: ${response.body}');
+      }
+    } catch (e) {
+      print('❌ [AdminService] Error creating app: $e');
+      rethrow;
+    }
   }
 
   Future<void> updateApp(String id, Map<String, dynamic> data) async {
@@ -248,6 +274,15 @@ class AdminService {
     return data.isNotEmpty ? data[0] : {};
   }
 
+  Future<Map<String, dynamic>> createAboutMe(Map<String, dynamic> data) async {
+    final response = await http.post(
+      Uri.parse('$_baseUrl/about_me'),
+      headers: _authHeaders,
+      body: json.encode(data),
+    );
+    return json.decode(response.body);
+  }
+
   Future<void> updateAboutMe(String id, Map<String, dynamic> data) async {
     await http.patch(
       Uri.parse('$_baseUrl/about_me?id=eq.$id'),
@@ -267,6 +302,15 @@ class AdminService {
     );
     final List data = json.decode(response.body);
     return data.isNotEmpty ? data[0] : {};
+  }
+
+  Future<Map<String, dynamic>> createContactInfo(Map<String, dynamic> data) async {
+    final response = await http.post(
+      Uri.parse('$_baseUrl/contact_info'),
+      headers: _authHeaders,
+      body: json.encode(data),
+    );
+    return json.decode(response.body);
   }
 
   Future<void> updateContactInfo(String id, Map<String, dynamic> data) async {
@@ -289,11 +333,26 @@ class AdminService {
     return List<Map<String, dynamic>>.from(json.decode(response.body));
   }
 
+  Future<void> updateContactMessage(String id, Map<String, dynamic> data) async {
+    await http.patch(
+      Uri.parse('$_baseUrl/contact_messages?id=eq.$id'),
+      headers: _authHeaders,
+      body: json.encode(data),
+    );
+  }
+
   Future<void> markMessageAsRead(String id) async {
     await http.patch(
       Uri.parse('$_baseUrl/contact_messages?id=eq.$id'),
       headers: _authHeaders,
       body: json.encode({'is_read': true}),
+    );
+  }
+
+  Future<void> deleteContactMessage(String id) async {
+    await http.delete(
+      Uri.parse('$_baseUrl/contact_messages?id=eq.$id'),
+      headers: _authHeaders,
     );
   }
 

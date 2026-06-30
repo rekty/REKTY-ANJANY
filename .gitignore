@@ -85,6 +85,14 @@ supabase/.branches/
 supabase/.cache/
 
 # ==========================================
+# Configuration Files with Credentials
+# ==========================================
+
+lib/core/config/supabase_config.dart
+lib/core/config/*_config.dart
+!lib/core/config/*.example.dart
+
+# ==========================================
 # Secrets
 # ==========================================
 
