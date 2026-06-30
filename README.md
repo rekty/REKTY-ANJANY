@@ -264,7 +264,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 - Website: [https://rekty-anjany-5a2eb.web.app](https://rekty-anjany-5a2eb.web.app)
 - Email: rekty.anjany@gmail.com
-- GitHub: [@YOUR_GITHUB_USERNAME](https://github.com/YOUR_GITHUB_USERNAME)
+- GitHub: [@](https://github.com/Rekty)
 
 ## 🙏 Acknowledgments
 
