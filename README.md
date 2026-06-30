@@ -290,3 +290,50 @@ For support, email rekty.anjany@gmail.com or open an issue on GitHub.
 ---
 
 Made with ❤️ using Flutter & Supabase
+## 📸 Screenshots
+
+### 🏠 Home
+<p align="center">
+  <img src="assets/screenshots/home.png" alt="Home" width="900">
+</p>
+
+### 📱 Applications
+<p align="center">
+  <img src="assets/screenshots/apps.png" alt="Apps" width="900">
+</p>
+
+### 📥 Downloads
+<p align="center">
+  <img src="assets/screenshots/downloads.png" alt="Downloads" width="900">
+</p>
+
+### 🛒 Store
+<p align="center">
+  <img src="assets/screenshots/store.png" alt="Store" width="900">
+</p>
+
+### 🖼️ Gallery
+<p align="center">
+  <img src="assets/screenshots/gallery.png" alt="Gallery" width="900">
+</p>
+
+### 📝 Blog
+<p align="center">
+  <img src="assets/screenshots/blog.png" alt="Blog" width="900">
+</p>
+
+### ⚙️ Admin Dashboard
+<p align="center">
+  <img src="assets/screenshots/admin-dashboard.png" alt="Admin Dashboard" width="900">
+</p>
+
+### 📊 Admin Management
+<p align="center">
+  <img src="assets/screenshots/admin-management.png" alt="Admin Management" width="900">
+</p>
+### 🔐 Login
+
+<p align="center">
+  <img src="assets/screenshots/login.png" alt="Login" width="900">
+</p>
+
