@@ -1,157 +1,241 @@
-# 🔒 Security Guide
+# 🔒 Security Policy
 
-## 🛡️ Credentials Management
+## Overview
 
-### What's Safe to Commit
-✅ **Supabase Anon Key** - Designed for client-side use
-✅ **Supabase URL** - Public project URL
-✅ **Firebase Config** - Client configuration
-✅ **Public API endpoints** - Read-only APIs
-
-### What's NEVER Safe to Commit
-⛔ **Service Role Key** - Full database access
-⛔ **Database Password** - Direct database access
-⛔ **Private API Keys** - Paid services keys
-⛔ **OAuth Client Secrets** - OAuth provider secrets
-⛔ **Encryption Keys** - Data encryption keys
+This project implements multiple layers of security to protect sensitive data and admin access.
 
 ---
 
-## 🔐 Environment Variables
+## 🛡️ Security Measures
 
-### Local Development
+### 1. Credentials Protection
 
-1. **Copy template:**
-```bash
-cp .env.example .env
+**✅ What is PROTECTED (Never in Git):**
+- Supabase credentials (`supabase_config.dart`)
+- Admin emails and passwords (database only)
+- Environment variables (`.env`)
+- Firebase admin SDK keys
+- Private keys and certificates
+- OAuth client secrets (Supabase only)
+
+**✅ What is SAFE to commit:**
+- Example configuration files (`*.example.dart`, `.env.example`)
+- Database schema without data (`*.sql`)
+- Public documentation
+- Source code (no hardcoded credentials)
+
+### 2. Row Level Security (RLS)
+
+All Supabase tables are protected with RLS policies:
+
+| Table | Public Access | Admin Access |
+|-------|---------------|--------------|
+| `apps` | ✅ Read | ✅ Full CRUD |
+| `downloads` | ✅ Read | ✅ Full CRUD |
+| `products` | ✅ Read | ✅ Full CRUD |
+| `gallery_items` | ✅ Read | ✅ Full CRUD |
+| `blog_posts` | ✅ Read | ✅ Full CRUD |
+| `about_me` | ✅ Read | ✅ Full CRUD |
+| `contact_info` | ✅ Read | ✅ Full CRUD |
+| `contact_messages` | ✅ Insert only | ✅ Full CRUD |
+| `admin_users` | ❌ None | ✅ Read only |
+
+**Note:** `contact_messages` has RLS disabled to allow public form submission. Admin access is protected at application level.
+
+### 3. Admin Access Control
+
+**Database-Level:**
+- Admin users stored in `admin_users` table
+- Only whitelisted emails can access admin panel
+- Email verification on every admin request
+- JWT token validation via Supabase Auth
+
+**Application-Level:**
+- Route guards (`/admin/*` routes protected)
+- Middleware checks authentication before rendering
+- `isAdmin()` check against `admin_users` table
+- Redirect to `/login` if unauthorized
+
+**Authentication Methods:**
+- ✅ Google OAuth
+- ✅ GitHub OAuth
+- ✅ Facebook OAuth
+- ✅ Email/Password (Supabase Auth)
+
+### 4. API Security
+
+**Supabase REST API:**
+- All requests require `apikey` header (anon key)
+- Authenticated requests require `Authorization: Bearer <JWT>` header
+- JWT tokens validated by Supabase
+- Rate limiting enforced by Supabase (default limits)
+
+**Admin Endpoints:**
+```dart
+// Admin requests automatically include JWT token
+final response = await http.get(
+  Uri.parse('$baseUrl/admin_users?email=eq.$email'),
+  headers: {
+    'apikey': SupabaseConfig.supabaseAnonKey,
+    'Authorization': 'Bearer $accessToken', // Required for admin
+  },
+);
 ```
 
-2. **Fill in your credentials in `.env`:**
-```env
-SUPABASE_URL=https://your-project.supabase.co
-SUPABASE_ANON_KEY=eyJ...your-actual-key
-```
+### 5. OAuth Configuration
 
-3. **Never commit `.env` file!** (already in `.gitignore`)
+**Redirect URLs:**
+- ✅ Supabase callback: `https://YOUR_PROJECT.supabase.co/auth/v1/callback`
+- ❌ Website URL (NOT added to OAuth providers)
 
-### Production (Firebase Hosting)
-
-For Flutter Web deployed to Firebase, credentials are compiled into the JS bundle. This is acceptable because:
-
-1. **Anon Key is Public** - Designed for client-side use
-2. **Row Level Security (RLS)** - Protects database at Supabase level
-3. **OAuth Security** - Users authenticate via OAuth providers
-4. **No Service Role Key** - Never expose admin credentials
+**OAuth Providers:**
+- Configured in Supabase Dashboard only
+- Client secrets stored in Supabase (not in code)
+- Tokens managed by Supabase Auth
+- Automatic JWT refresh
 
 ---
 
-## 🔒 Supabase Security
+## 🚨 Reporting Security Issues
 
-### Row Level Security (RLS)
+If you discover a security vulnerability, please:
 
-Enable RLS on all tables in Supabase:
-
-```sql
--- Enable RLS on apps table
-ALTER TABLE apps ENABLE ROW LEVEL SECURITY;
-
--- Policy: Anyone can read
-CREATE POLICY "Enable read access for all users"
-ON apps FOR SELECT
-USING (true);
-
--- Policy: Only authenticated users can insert
-CREATE POLICY "Enable insert for authenticated users only"
-ON apps FOR INSERT
-WITH CHECK (auth.role() = 'authenticated');
-
--- Policy: Only owners can update
-CREATE POLICY "Enable update for owners only"
-ON apps FOR UPDATE
-USING (auth.uid() = user_id);
-```
-
-Apply similar policies to:
-- `blog_posts`
-- `products`
-- `gallery_items`
-- `downloads`
-- `about_me`
-
-### OAuth Configuration
-
-**Redirect URLs (whitelist only these):**
-- Production: `https://rekty-anjany-5a2eb.web.app/auth/callback`
-- Localhost: `http://localhost:8080/auth/callback`
-
-**Never expose:**
-- OAuth Client Secrets
-- OAuth Refresh Tokens (server-side only)
-
----
-
-## 🚨 What to Do if Credentials Leaked
-
-### 1. Rotate Supabase Keys Immediately
-- Go to Supabase Dashboard → Settings → API
-- Click "Reset" on Anon Key
-- Update `.env` file with new key
-- Redeploy application
-
-### 2. Check GitHub History
-```bash
-# Remove sensitive file from Git history
-git filter-branch --force --index-filter \
-  "git rm --cached --ignore-unmatch lib/core/config/supabase_config.dart" \
-  --prune-empty --tag-name-filter cat -- --all
-
-# Force push (WARNING: rewrites history)
-git push origin --force --all
-```
-
-### 3. Revoke OAuth Apps
-- Go to each OAuth provider (Google, GitHub, Facebook)
-- Revoke or regenerate client secrets
-- Update Supabase Auth settings
-
-### 4. Monitor Access Logs
-- Check Supabase Dashboard → Logs
-- Look for suspicious access patterns
-- Enable alerts for unusual activity
-
----
-
-## ✅ Security Checklist Before Push
-
-- [ ] No `.env` file in commit
-- [ ] No hardcoded passwords in code
-- [ ] `.gitignore` includes `.env`
-- [ ] Service Role Key not in code
-- [ ] Database password not exposed
-- [ ] OAuth secrets not committed
-- [ ] RLS enabled on all tables
-- [ ] Redirect URLs whitelisted
-- [ ] HTTPS enforced (Firebase does this)
-
----
-
-## 📚 Additional Resources
-
-- [Supabase Security Best Practices](https://supabase.com/docs/guides/auth/row-level-security)
-- [OWASP Top 10](https://owasp.org/www-project-top-ten/)
-- [Firebase Security Rules](https://firebase.google.com/docs/rules)
-- [GitHub Security](https://docs.github.com/en/code-security)
-
----
-
-## 📞 Report Security Issue
-
-If you find a security vulnerability, please:
 1. **DO NOT** open a public issue
-2. Email directly: security@rektyanjany.com
-3. Include detailed description and steps to reproduce
+2. **DO NOT** disclose publicly until fixed
+3. Email the maintainer directly: rekty.anjany@gmail.com
+4. Include:
+   - Description of the vulnerability
+   - Steps to reproduce
+   - Potential impact
+   - Suggested fix (if any)
+
+**Response Time:** Within 48 hours for critical issues
 
 ---
 
-**Last Updated:** June 29, 2026  
-**Maintained by:** Rekty Anjany
+## ✅ Security Checklist for Deployment
+
+Before deploying to production:
+
+### Configuration
+- [ ] `.gitignore` includes all sensitive files
+- [ ] `supabase_config.dart` is in `.gitignore`
+- [ ] No hardcoded credentials in source code
+- [ ] Environment variables properly configured
+- [ ] OAuth redirect URLs correctly set
+
+### Database
+- [ ] RLS enabled on all tables (except contact_messages)
+- [ ] RLS policies tested and working
+- [ ] Admin users properly configured in `admin_users` table
+- [ ] Database backups configured
+- [ ] SSL/TLS enabled (Supabase default)
+
+### Authentication
+- [ ] OAuth providers configured in Supabase only
+- [ ] Strong password policy enabled
+- [ ] Email verification enabled (optional)
+- [ ] 2FA recommended for admin accounts
+- [ ] Session timeout configured
+
+### Application
+- [ ] Admin routes protected with middleware
+- [ ] `isAdmin()` validation working
+- [ ] JWT tokens validated on all admin requests
+- [ ] Error messages don't leak sensitive info
+- [ ] HTTPS enforced in production
+
+### Monitoring
+- [ ] Supabase logs monitored regularly
+- [ ] Suspicious activity alerts configured
+- [ ] Failed login attempts tracked
+- [ ] API rate limits appropriate
+- [ ] Database size monitored
+
+---
+
+## 🔐 Best Practices
+
+### For Developers
+
+**DO:**
+- ✅ Use example files (`*.example.dart`, `.env.example`)
+- ✅ Keep dependencies updated
+- ✅ Use strong, unique passwords
+- ✅ Enable 2FA on GitHub and OAuth accounts
+- ✅ Review Supabase logs regularly
+- ✅ Rotate OAuth secrets periodically
+- ✅ Test RLS policies before deployment
+
+**DON'T:**
+- ❌ Commit `supabase_config.dart` or `.env` files
+- ❌ Share admin credentials publicly
+- ❌ Use service_role key in client apps
+- ❌ Disable RLS without good reason
+- ❌ Hardcode any credentials in source code
+- ❌ Push to public repo without security review
+
+### For Admin Users
+
+**DO:**
+- ✅ Use strong, unique passwords
+- ✅ Enable 2FA on OAuth accounts (Google/GitHub/Facebook)
+- ✅ Logout after admin session
+- ✅ Use HTTPS only
+- ✅ Review contact messages for spam
+- ✅ Keep browser and OS updated
+
+**DON'T:**
+- ❌ Share admin credentials
+- ❌ Use public computers for admin access
+- ❌ Leave admin session open unattended
+- ❌ Click suspicious links in contact messages
+- ❌ Disable browser security features
+
+---
+
+## 📚 Security Resources
+
+### Documentation
+- [Supabase Security](https://supabase.com/docs/guides/auth)
+- [Supabase RLS](https://supabase.com/docs/guides/auth/row-level-security)
+- [OAuth 2.0 Best Practices](https://datatracker.ietf.org/doc/html/draft-ietf-oauth-security-topics)
+- [Flutter Security](https://docs.flutter.dev/security)
+
+### Tools
+- [Supabase Dashboard](https://app.supabase.com) - Monitor logs & policies
+- [GitHub Security Alerts](https://github.com/security) - Dependency vulnerabilities
+- [Firebase Security Rules](https://firebase.google.com/docs/rules) - Hosting protection
+
+---
+
+## 🔄 Security Update Log
+
+### Version 1.0.0 (July 2026)
+- ✅ Initial security implementation
+- ✅ RLS policies configured
+- ✅ Admin authentication implemented
+- ✅ OAuth integration (Google, GitHub, Facebook)
+- ✅ `.gitignore` configured
+- ✅ Example files created
+- ✅ Documentation completed
+
+---
+
+## 📞 Contact
+
+**Security Issues:** rekty.anjany@gmail.com
+
+**General Support:** https://github.com/rekty/REKTY-ANJANY/issues
+
+---
+
+<p align="center">
+  <b>Security is everyone's responsibility.</b><br>
+  Report issues responsibly. Keep credentials secure.
+</p>
+
+---
+
+**Last Updated:** July 1, 2026  
+**Maintained By:** Rekty Anjany

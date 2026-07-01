@@ -1,92 +1,103 @@
-/// RSS Feed Generator for Blog
-/// Generates RSS 2.0 compliant XML feed
+import 'dart:convert';
+import 'package:http/http.dart' as http;
+import '../config/supabase_config.dart';
+
+/// Service for generating RSS feed for blog posts
 class RssGenerator {
-  static final String baseUrl = 'https://rekty-anjany-5a2eb.web.app';
-  static final String blogTitle = 'Rekty Anjany Blog';
-  static final String blogDescription =
-      'Articles, tutorials and insights about web development, programming, and technology';
-  static final String blogLanguage = 'en-US';
+  static final RssGenerator instance = RssGenerator._();
+  RssGenerator._();
 
-  /// Generate RSS feed XML content
-  static String generateRssFeed({
-    required List<Map<String, dynamic>> posts,
-  }) {
+  final String _baseUrl = '${SupabaseConfig.supabaseUrl}/rest/v1';
+  final String _websiteUrl = 'https://rekty-anjany-5a2eb.web.app';
+  final String _authorName = 'Rekty Anjany';
+  final String _authorEmail = 'rekty.anjany@gmail.com';
+
+  /// Generate RSS 2.0 feed for blog posts
+  Future<String> generateRssFeed() async {
     final buffer = StringBuffer();
-    final now = DateTime.now();
-    final pubDate = _formatRssDate(now);
-
+    
+    // XML header
     buffer.writeln('<?xml version="1.0" encoding="UTF-8"?>');
-    buffer.writeln('<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">');
+    buffer.writeln('<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/">');
     buffer.writeln('  <channel>');
-    buffer.writeln('    <title>$blogTitle</title>');
-    buffer.writeln('    <link>$baseUrl/#/blog</link>');
-    buffer.writeln('    <description>$blogDescription</description>');
-    buffer.writeln('    <language>$blogLanguage</language>');
-    buffer.writeln('    <lastBuildDate>$pubDate</lastBuildDate>');
-    buffer.writeln('    <atom:link href="$baseUrl/rss.xml" rel="self" type="application/rss+xml"/>');
-
-    // Add each post
-    for (final post in posts) {
-      final title = _escapeXml(post['title'] ?? 'Untitled');
-      final slug = post['slug'] ?? '';
-      final excerpt = _escapeXml(post['excerpt'] ?? '');
-      final content = _escapeXml(post['content'] ?? '');
-      final publishedAt = post['published_at'] != null
-          ? DateTime.parse(post['published_at'])
-          : now;
-      final postPubDate = _formatRssDate(publishedAt);
-      final postUrl = '$baseUrl/#/blog/$slug';
-      final guid = post['id'] ?? slug;
-
-      buffer.writeln('    <item>');
-      buffer.writeln('      <title>$title</title>');
-      buffer.writeln('      <link>$postUrl</link>');
-      buffer.writeln('      <guid isPermaLink="false">$guid</guid>');
-      buffer.writeln('      <pubDate>$postPubDate</pubDate>');
-      
-      if (excerpt.isNotEmpty) {
-        buffer.writeln('      <description>$excerpt</description>');
-      }
-      
-      if (content.isNotEmpty) {
-        buffer.writeln('      <content:encoded><![CDATA[$content]]></content:encoded>');
-      }
-
-      // Add category/tag if exists
-      if (post['tag'] != null) {
-        buffer.writeln('      <category>${_escapeXml(post['tag'])}</category>');
-      }
-
-      buffer.writeln('    </item>');
-    }
-
+    
+    // Channel metadata
+    buffer.writeln('    <title>Rekty Anjany Blog</title>');
+    buffer.writeln('    <link>$_websiteUrl/blog</link>');
+    buffer.writeln('    <description>Articles, tutorials, and insights from Rekty Anjany - Developer, Creator, Innovator</description>');
+    buffer.writeln('    <language>en-US</language>');
+    buffer.writeln('    <lastBuildDate>${_getRfc822Date(DateTime.now())}</lastBuildDate>');
+    buffer.writeln('    <atom:link href="$_websiteUrl/rss.xml" rel="self" type="application/rss+xml" />');
+    buffer.writeln('    <generator>Rekty Anjany Portfolio</generator>');
+    buffer.writeln('    <image>');
+    buffer.writeln('      <url>$_websiteUrl/icons/Icon-512.png</url>');
+    buffer.writeln('      <title>Rekty Anjany Blog</title>');
+    buffer.writeln('      <link>$_websiteUrl/blog</link>');
+    buffer.writeln('    </image>');
+    
+    // Fetch and add blog posts
+    await _addBlogPosts(buffer);
+    
     buffer.writeln('  </channel>');
     buffer.writeln('</rss>');
-
+    
     return buffer.toString();
   }
 
-  /// Format date for RSS (RFC 822)
-  static String _formatRssDate(DateTime date) {
-    const weekdays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-    const months = [
-      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
-    ];
+  /// Fetch and add blog posts to RSS feed
+  Future<void> _addBlogPosts(StringBuffer buffer) async {
+    try {
+      final response = await http.get(
+        Uri.parse('$_baseUrl/blog_posts?select=*&order=created_at.desc&limit=50'),
+        headers: {
+          'apikey': SupabaseConfig.supabaseAnonKey,
+          'Content-Type': 'application/json',
+        },
+      );
 
-    final weekday = weekdays[date.weekday - 1];
-    final day = date.day.toString().padLeft(2, '0');
-    final month = months[date.month - 1];
-    final year = date.year;
-    final hour = date.hour.toString().padLeft(2, '0');
-    final minute = date.minute.toString().padLeft(2, '0');
-    final second = date.second.toString().padLeft(2, '0');
+      if (response.statusCode == 200) {
+        final List posts = json.decode(response.body);
+        
+        for (var post in posts) {
+          _addRssItem(buffer, post);
+        }
+      }
+    } catch (e) {
+      print('Error fetching blog posts for RSS: $e');
+    }
+  }
 
-    return '$weekday, $day $month $year $hour:$minute:$second +0000';
+  /// Add individual blog post as RSS item
+  void _addRssItem(StringBuffer buffer, Map<String, dynamic> post) {
+    final title = _escapeXml(post['title'] ?? 'Untitled');
+    final slug = post['slug'] ?? post['id'];
+    final link = '$_websiteUrl/blog/$slug';
+    final description = _escapeXml(post['excerpt'] ?? post['description'] ?? '');
+    final content = _escapeXml(post['content'] ?? description);
+    final pubDate = _getRfc822Date(_parseDate(post['created_at']));
+    final author = post['author'] ?? _authorName;
+    final category = post['category'] ?? 'General';
+    final imageUrl = post['image_url'];
+    
+    buffer.writeln('    <item>');
+    buffer.writeln('      <title>$title</title>');
+    buffer.writeln('      <link>$link</link>');
+    buffer.writeln('      <guid isPermaLink="true">$link</guid>');
+    buffer.writeln('      <pubDate>$pubDate</pubDate>');
+    buffer.writeln('      <author>$_authorEmail ($author)</author>');
+    buffer.writeln('      <category>$category</category>');
+    buffer.writeln('      <description>$description</description>');
+    buffer.writeln('      <content:encoded><![CDATA[$content]]></content:encoded>');
+    
+    if (imageUrl != null && imageUrl.isNotEmpty) {
+      buffer.writeln('      <enclosure url="${_escapeXml(imageUrl)}" type="image/jpeg" />');
+    }
+    
+    buffer.writeln('    </item>');
   }
 
   /// Escape XML special characters
-  static String _escapeXml(String text) {
+  String _escapeXml(String text) {
     return text
         .replaceAll('&', '&amp;')
         .replaceAll('<', '&lt;')
@@ -95,57 +106,35 @@ class RssGenerator {
         .replaceAll("'", '&apos;');
   }
 
-  /// Generate Atom feed (alternative to RSS)
-  static String generateAtomFeed({
-    required List<Map<String, dynamic>> posts,
-  }) {
-    final buffer = StringBuffer();
-    final now = DateTime.now().toIso8601String();
+  /// Convert DateTime to RFC 822 format (required for RSS)
+  String _getRfc822Date(DateTime date) {
+    const weekdays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    
+    final weekday = weekdays[date.weekday - 1];
+    final day = date.day.toString().padLeft(2, '0');
+    final month = months[date.month - 1];
+    final year = date.year;
+    final hour = date.hour.toString().padLeft(2, '0');
+    final minute = date.minute.toString().padLeft(2, '0');
+    final second = date.second.toString().padLeft(2, '0');
+    
+    return '$weekday, $day $month $year $hour:$minute:$second +0000';
+  }
 
-    buffer.writeln('<?xml version="1.0" encoding="UTF-8"?>');
-    buffer.writeln('<feed xmlns="http://www.w3.org/2005/Atom">');
-    buffer.writeln('  <title>$blogTitle</title>');
-    buffer.writeln('  <link href="$baseUrl/#/blog"/>');
-    buffer.writeln('  <link rel="self" href="$baseUrl/atom.xml"/>');
-    buffer.writeln('  <id>$baseUrl/#/blog</id>');
-    buffer.writeln('  <updated>$now</updated>');
-    buffer.writeln('  <subtitle>$blogDescription</subtitle>');
-
-    // Add each post
-    for (final post in posts) {
-      final title = _escapeXml(post['title'] ?? 'Untitled');
-      final slug = post['slug'] ?? '';
-      final excerpt = _escapeXml(post['excerpt'] ?? '');
-      final content = _escapeXml(post['content'] ?? '');
-      final publishedAt = post['published_at'] ?? now;
-      final updatedAt = post['updated_at'] ?? publishedAt;
-      final postUrl = '$baseUrl/#/blog/$slug';
-      final guid = post['id'] ?? slug;
-
-      buffer.writeln('  <entry>');
-      buffer.writeln('    <title>$title</title>');
-      buffer.writeln('    <link href="$postUrl"/>');
-      buffer.writeln('    <id>$guid</id>');
-      buffer.writeln('    <updated>$updatedAt</updated>');
-      buffer.writeln('    <published>$publishedAt</published>');
-      
-      if (excerpt.isNotEmpty) {
-        buffer.writeln('    <summary>$excerpt</summary>');
-      }
-      
-      if (content.isNotEmpty) {
-        buffer.writeln('    <content type="html"><![CDATA[$content]]></content>');
-      }
-
-      buffer.writeln('    <author>');
-      buffer.writeln('      <name>Rekty Anjany</name>');
-      buffer.writeln('    </author>');
-
-      buffer.writeln('  </entry>');
+  /// Parse date string to DateTime
+  DateTime _parseDate(String? dateStr) {
+    if (dateStr == null) return DateTime.now();
+    
+    try {
+      return DateTime.parse(dateStr);
+    } catch (e) {
+      return DateTime.now();
     }
+  }
 
-    buffer.writeln('</feed>');
-
-    return buffer.toString();
+  /// Get RSS filename
+  String getRssFileName() {
+    return 'rss.xml';
   }
 }

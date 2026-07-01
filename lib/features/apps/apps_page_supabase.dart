@@ -11,6 +11,7 @@ import '../../core/services/seo_service.dart';
 import '../../shared/layout/app_scaffold.dart';
 import '../../shared/layout/responsive_container.dart';
 import '../../shared/layout/section_title.dart';
+import '../../shared/widgets/loading/skeleton_loader.dart';
 
 class AppsPageSupabase extends StatefulWidget {
   const AppsPageSupabase({super.key});
@@ -121,12 +122,10 @@ class _AppsListState extends State<_AppsList> {
   @override
   Widget build(BuildContext context) {
     if (_loading) {
-      return const ResponsiveContainer(
-        child: Center(
-          child: Padding(
-            padding: EdgeInsets.all(AppSpacing.massive),
-            child: CircularProgressIndicator(),
-          ),
+      return ResponsiveContainer(
+        child: SkeletonGrid(
+          itemCount: 6,
+          crossAxisCount: 3,
         ),
       );
     }

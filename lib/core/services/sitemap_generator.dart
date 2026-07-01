@@ -1,125 +1,204 @@
-/// Sitemap Generator for SEO
-/// This generates XML sitemap content that can be saved as sitemap.xml
-class SitemapGenerator {
-  static final String baseUrl = 'https://rekty-anjany-5a2eb.web.app';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
+import '../config/supabase_config.dart';
 
-  /// Generate sitemap XML content
-  static String generateSitemap({
-    required List<Map<String, dynamic>> pages,
-  }) {
+/// Service for generating dynamic sitemap.xml from database content
+class SitemapGenerator {
+  static final SitemapGenerator instance = SitemapGenerator._();
+  SitemapGenerator._();
+
+  final String _baseUrl = '${SupabaseConfig.supabaseUrl}/rest/v1';
+  final String _websiteUrl = 'https://rekty-anjany-5a2eb.web.app';
+
+  /// Generate complete sitemap XML
+  Future<String> generateSitemap() async {
     final buffer = StringBuffer();
     
+    // XML header
     buffer.writeln('<?xml version="1.0" encoding="UTF-8"?>');
-    buffer.writeln(
-      '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">',
-    );
-
-    // Add each page
-    for (final page in pages) {
-      buffer.writeln('  <url>');
-      buffer.writeln('    <loc>${page['url']}</loc>');
-      
-      if (page['lastmod'] != null) {
-        buffer.writeln('    <lastmod>${page['lastmod']}</lastmod>');
-      }
-      
-      if (page['changefreq'] != null) {
-        buffer.writeln('    <changefreq>${page['changefreq']}</changefreq>');
-      }
-      
-      if (page['priority'] != null) {
-        buffer.writeln('    <priority>${page['priority']}</priority>');
-      }
-      
-      buffer.writeln('  </url>');
-    }
-
+    buffer.writeln('<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">');
+    
+    // Static pages
+    _addStaticPages(buffer);
+    
+    // Dynamic content from database
+    await _addBlogPosts(buffer);
+    await _addApps(buffer);
+    await _addProducts(buffer);
+    await _addGalleryItems(buffer);
+    
     buffer.writeln('</urlset>');
+    
     return buffer.toString();
   }
 
-  /// Generate default sitemap with static pages
-  static String generateDefaultSitemap() {
-    final now = DateTime.now().toIso8601String().split('T')[0];
-    
-    final pages = [
-      {
-        'url': baseUrl,
-        'lastmod': now,
-        'changefreq': 'daily',
-        'priority': '1.0',
-      },
-      {
-        'url': '$baseUrl/#/apps',
-        'lastmod': now,
-        'changefreq': 'weekly',
-        'priority': '0.9',
-      },
-      {
-        'url': '$baseUrl/#/downloads',
-        'lastmod': now,
-        'changefreq': 'weekly',
-        'priority': '0.9',
-      },
-      {
-        'url': '$baseUrl/#/store',
-        'lastmod': now,
-        'changefreq': 'weekly',
-        'priority': '0.8',
-      },
-      {
-        'url': '$baseUrl/#/blog',
-        'lastmod': now,
-        'changefreq': 'daily',
-        'priority': '0.9',
-      },
-      {
-        'url': '$baseUrl/#/gallery',
-        'lastmod': now,
-        'changefreq': 'weekly',
-        'priority': '0.7',
-      },
-      {
-        'url': '$baseUrl/#/contact',
-        'lastmod': now,
-        'changefreq': 'monthly',
-        'priority': '0.6',
-      },
+  /// Add static pages to sitemap
+  void _addStaticPages(StringBuffer buffer) {
+    final staticPages = [
+      {'loc': '/', 'priority': '1.0', 'changefreq': 'daily'},
+      {'loc': '/apps', 'priority': '0.9', 'changefreq': 'weekly'},
+      {'loc': '/downloads', 'priority': '0.9', 'changefreq': 'weekly'},
+      {'loc': '/store', 'priority': '0.8', 'changefreq': 'weekly'},
+      {'loc': '/blog', 'priority': '0.9', 'changefreq': 'daily'},
+      {'loc': '/gallery', 'priority': '0.7', 'changefreq': 'weekly'},
+      {'loc': '/contact', 'priority': '0.6', 'changefreq': 'monthly'},
     ];
 
-    return generateSitemap(pages: pages);
+    for (var page in staticPages) {
+      buffer.writeln('  <url>');
+      buffer.writeln('    <loc>$_websiteUrl${page['loc']}</loc>');
+      buffer.writeln('    <lastmod>${_getCurrentDate()}</lastmod>');
+      buffer.writeln('    <changefreq>${page['changefreq']}</changefreq>');
+      buffer.writeln('    <priority>${page['priority']}</priority>');
+      buffer.writeln('  </url>');
+    }
   }
 
-  /// Generate sitemap with blog posts
-  static String generateBlogSitemap({
-    required List<Map<String, dynamic>> posts,
-  }) {
-    final pages = posts.map((post) {
-      return {
-        'url': '$baseUrl/#/blog/${post['slug']}',
-        'lastmod': post['updated_at'] ?? post['published_at'],
-        'changefreq': 'monthly',
-        'priority': '0.7',
-      };
-    }).toList();
+  /// Add blog posts from database
+  Future<void> _addBlogPosts(StringBuffer buffer) async {
+    try {
+      final response = await http.get(
+        Uri.parse('$_baseUrl/blog_posts?select=id,slug,title,updated_at&order=created_at.desc&limit=100'),
+        headers: {
+          'apikey': SupabaseConfig.supabaseAnonKey,
+          'Content-Type': 'application/json',
+        },
+      );
 
-    return generateSitemap(pages: pages);
+      if (response.statusCode == 200) {
+        final List posts = json.decode(response.body);
+        
+        for (var post in posts) {
+          final slug = post['slug'] ?? post['id'];
+          final updatedAt = post['updated_at'] ?? _getCurrentDate();
+          
+          buffer.writeln('  <url>');
+          buffer.writeln('    <loc>$_websiteUrl/blog/$slug</loc>');
+          buffer.writeln('    <lastmod>${_formatDate(updatedAt)}</lastmod>');
+          buffer.writeln('    <changefreq>monthly</changefreq>');
+          buffer.writeln('    <priority>0.8</priority>');
+          buffer.writeln('  </url>');
+        }
+      }
+    } catch (e) {
+      print('Error fetching blog posts for sitemap: $e');
+    }
   }
 
-  /// Generate robots.txt content
-  static String generateRobotsTxt() {
-    return '''User-agent: *
-Allow: /
+  /// Add apps from database
+  Future<void> _addApps(StringBuffer buffer) async {
+    try {
+      final response = await http.get(
+        Uri.parse('$_baseUrl/apps?select=id,name,updated_at&order=created_at.desc&limit=100'),
+        headers: {
+          'apikey': SupabaseConfig.supabaseAnonKey,
+          'Content-Type': 'application/json',
+        },
+      );
 
-Sitemap: $baseUrl/sitemap.xml
+      if (response.statusCode == 200) {
+        final List apps = json.decode(response.body);
+        
+        for (var app in apps) {
+          final appId = app['id'];
+          final updatedAt = app['updated_at'] ?? _getCurrentDate();
+          
+          buffer.writeln('  <url>');
+          buffer.writeln('    <loc>$_websiteUrl/apps/$appId</loc>');
+          buffer.writeln('    <lastmod>${_formatDate(updatedAt)}</lastmod>');
+          buffer.writeln('    <changefreq>monthly</changefreq>');
+          buffer.writeln('    <priority>0.7</priority>');
+          buffer.writeln('  </url>');
+        }
+      }
+    } catch (e) {
+      print('Error fetching apps for sitemap: $e');
+    }
+  }
 
-# Disallow admin routes
-User-agent: *
-Disallow: /#/admin
-Disallow: /#/login
+  /// Add products from database
+  Future<void> _addProducts(StringBuffer buffer) async {
+    try {
+      final response = await http.get(
+        Uri.parse('$_baseUrl/products?select=id,name,updated_at&order=created_at.desc&limit=100'),
+        headers: {
+          'apikey': SupabaseConfig.supabaseAnonKey,
+          'Content-Type': 'application/json',
+        },
+      );
 
-# Crawl delay
-Crawl-delay: 10
-''';
+      if (response.statusCode == 200) {
+        final List products = json.decode(response.body);
+        
+        for (var product in products) {
+          final productId = product['id'];
+          final updatedAt = product['updated_at'] ?? _getCurrentDate();
+          
+          buffer.writeln('  <url>');
+          buffer.writeln('    <loc>$_websiteUrl/store/$productId</loc>');
+          buffer.writeln('    <lastmod>${_formatDate(updatedAt)}</lastmod>');
+          buffer.writeln('    <changefreq>weekly</changefreq>');
+          buffer.writeln('    <priority>0.7</priority>');
+          buffer.writeln('  </url>');
+        }
+      }
+    } catch (e) {
+      print('Error fetching products for sitemap: $e');
+    }
+  }
+
+  /// Add gallery items from database
+  Future<void> _addGalleryItems(StringBuffer buffer) async {
+    try {
+      final response = await http.get(
+        Uri.parse('$_baseUrl/gallery_items?select=id,title,updated_at&order=created_at.desc&limit=100'),
+        headers: {
+          'apikey': SupabaseConfig.supabaseAnonKey,
+          'Content-Type': 'application/json',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final List items = json.decode(response.body);
+        
+        for (var item in items) {
+          final itemId = item['id'];
+          final updatedAt = item['updated_at'] ?? _getCurrentDate();
+          
+          buffer.writeln('  <url>');
+          buffer.writeln('    <loc>$_websiteUrl/gallery/$itemId</loc>');
+          buffer.writeln('    <lastmod>${_formatDate(updatedAt)}</lastmod>');
+          buffer.writeln('    <changefreq>monthly</changefreq>');
+          buffer.writeln('    <priority>0.6</priority>');
+          buffer.writeln('  </url>');
+        }
+      }
+    } catch (e) {
+      print('Error fetching gallery items for sitemap: $e');
+    }
+  }
+
+  /// Get current date in YYYY-MM-DD format
+  String _getCurrentDate() {
+    final now = DateTime.now();
+    return '${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}';
+  }
+
+  /// Format datetime string to YYYY-MM-DD
+  String _formatDate(String? dateStr) {
+    if (dateStr == null) return _getCurrentDate();
+    
+    try {
+      final date = DateTime.parse(dateStr);
+      return '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
+    } catch (e) {
+      return _getCurrentDate();
+    }
+  }
+
+  /// Save sitemap to file (for static hosting)
+  /// This is useful for generating sitemap.xml before deployment
+  String getSitemapFileName() {
+    return 'sitemap.xml';
   }
 }

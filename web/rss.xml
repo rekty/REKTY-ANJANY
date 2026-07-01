@@ -2,14 +2,16 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/">
   <channel>
     <title>Rekty Anjany Blog</title>
-    <link>https://rekty-anjany-5a2eb.web.app/#/blog</link>
-    <description>Articles, tutorials and insights about web development, programming, and technology</description>
+    <link>https://rekty-anjany-5a2eb.web.app/blog</link>
+    <description>Articles, tutorials, and insights from Rekty Anjany - Developer, Creator, Innovator</description>
     <language>en-US</language>
-    <lastBuildDate>Wed, 01 Jul 2026 00:00:00 +0000</lastBuildDate>
-    <atom:link href="https://rekty-anjany-5a2eb.web.app/rss.xml" rel="self" type="application/rss+xml"/>
-    
-    <!-- Blog posts will be dynamically added here -->
-    <!-- This is a placeholder RSS feed -->
-    
+    <lastBuildDate>Wed, 01 Jul 2026 17:17:44 +0000</lastBuildDate>
+    <atom:link href="https://rekty-anjany-5a2eb.web.app/rss.xml" rel="self" type="application/rss+xml" />
+    <generator>Rekty Anjany Portfolio</generator>
+    <image>
+      <url>https://rekty-anjany-5a2eb.web.app/icons/Icon-512.png</url>
+      <title>Rekty Anjany Blog</title>
+      <link>https://rekty-anjany-5a2eb.web.app/blog</link>
+    </image>
   </channel>
 </rss>

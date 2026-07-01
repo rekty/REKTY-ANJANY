@@ -11,6 +11,8 @@ import '../../core/services/seo_service.dart';
 import '../../shared/layout/app_scaffold.dart';
 import '../../shared/layout/responsive_container.dart';
 import '../../shared/layout/section_title.dart';
+import '../../shared/widgets/image/lazy_image.dart';
+import '../../shared/widgets/loading/skeleton_loader.dart';
 
 class GalleryPageSupabase extends StatefulWidget {
   const GalleryPageSupabase({super.key});
@@ -138,9 +140,12 @@ class _GalleryPageSupabaseState extends State<GalleryPageSupabase> {
 
           // Content
           if (_isLoading)
-            const Expanded(
-              child: Center(
-                child: CircularProgressIndicator(color: AppColors.primary),
+            Expanded(
+              child: ResponsiveContainer(
+                child: SkeletonGrid(
+                  itemCount: 6,
+                  crossAxisCount: 3,
+                ),
               ),
             )
           else if (_error != null)

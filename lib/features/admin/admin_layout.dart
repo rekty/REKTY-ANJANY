@@ -152,6 +152,13 @@ class _AdminSidebar extends StatelessWidget {
                   path: '/admin/contact',
                   isActive: currentPath.startsWith('/admin/contact'),
                 ),
+                const SizedBox(height: 4),
+                _MenuItem(
+                  icon: Icons.search_rounded,
+                  label: 'SEO Tools',
+                  path: '/admin/seo',
+                  isActive: currentPath.startsWith('/admin/seo'),
+                ),
               ],
             ),
           ),

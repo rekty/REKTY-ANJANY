@@ -27,6 +27,7 @@ import '../features/admin/blog/admin_blog_form_page.dart';
 import '../features/admin/about/admin_about_page.dart';
 import '../features/admin/messages/admin_messages_page.dart';
 import '../features/admin/contact/admin_contact_page.dart';
+import '../features/admin/seo/admin_seo_page.dart';
 import '../core/middleware/admin_guard.dart';
 import '../core/services/supabase_auth_service.dart';
 import '../core/services/admin_service.dart';
@@ -254,6 +255,10 @@ class AppRouter {
           GoRoute(
             path: '/admin/contact',
             builder: (_, __) => const AdminContactPage(),
+          ),
+          GoRoute(
+            path: '/admin/seo',
+            builder: (_, __) => const AdminSeoPage(),
           ),
         ],
       ),

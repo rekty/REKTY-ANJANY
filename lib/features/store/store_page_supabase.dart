@@ -11,6 +11,7 @@ import '../../core/services/seo_service.dart';
 import '../../shared/layout/app_scaffold.dart';
 import '../../shared/layout/responsive_container.dart';
 import '../../shared/layout/section_title.dart';
+import '../../shared/widgets/loading/skeleton_loader.dart';
 
 class StorePageSupabase extends StatefulWidget {
   const StorePageSupabase({super.key});
@@ -108,9 +109,9 @@ class _StorePageSupabaseState extends State<StorePageSupabase> {
 
           // Content
           if (_isLoading)
-            const Expanded(
-              child: Center(
-                child: CircularProgressIndicator(color: AppColors.primary),
+            Expanded(
+              child: ResponsiveContainer(
+                child: SkeletonGrid(itemCount: 6, crossAxisCount: 3),
               ),
             )
           else if (_error != null)

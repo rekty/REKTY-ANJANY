@@ -10,6 +10,7 @@ import '../../core/services/seo_service.dart';
 import '../../shared/layout/app_scaffold.dart';
 import '../../shared/layout/responsive_container.dart';
 import '../../shared/layout/section_title.dart';
+import '../../shared/widgets/loading/skeleton_loader.dart';
 
 class BlogPageSupabase extends StatefulWidget {
   const BlogPageSupabase({super.key});
@@ -106,9 +107,9 @@ class _BlogPageSupabaseState extends State<BlogPageSupabase> {
 
           // Content
           if (_isLoading)
-            const Expanded(
-              child: Center(
-                child: CircularProgressIndicator(color: AppColors.primary),
+            Expanded(
+              child: ResponsiveContainer(
+                child: SkeletonList(itemCount: 3),
               ),
             )
           else if (_error != null)

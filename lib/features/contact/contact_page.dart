@@ -5,7 +5,7 @@ import '../../core/constants/app_radius.dart';
 import '../../core/constants/app_shadow.dart';
 import '../../core/constants/app_spacing.dart';
 import '../../core/services/seo_service.dart';
-// import '../../core/services/supabase_service.dart'; // TEMPORARILY DISABLED
+import '../../core/services/admin_service.dart';
 import '../../shared/layout/app_scaffold.dart';
 import '../../shared/layout/responsive_container.dart';
 import '../../shared/layout/section_title.dart';
@@ -247,7 +247,7 @@ class _FullContactFormState extends State<_FullContactForm> {
   final _emailController = TextEditingController();
   final _subjectController = TextEditingController();
   final _messageController = TextEditingController();
-  // final _supabase = SupabaseService.instance; // TEMPORARILY DISABLED
+  final _adminService = AdminService.instance;
   bool _sending = false;
   bool _sent = false;
   String? _error;
@@ -270,16 +270,13 @@ class _FullContactFormState extends State<_FullContactForm> {
     });
 
     try {
-      // await _supabase.submitContactMessage( // TEMPORARILY DISABLED
-      // Mock success for now
-      await Future.delayed(const Duration(seconds: 1));
-      /*
+      // Submit contact message to Supabase
+      await _adminService.submitContactMessage(
         name: _nameController.text.trim(),
         email: _emailController.text.trim(),
         subject: _subjectController.text.trim(),
         message: _messageController.text.trim(),
-      */
-      // );
+      );
 
       setState(() {
         _sending = false;
@@ -291,6 +288,17 @@ class _FullContactFormState extends State<_FullContactForm> {
       _emailController.clear();
       _subjectController.clear();
       _messageController.clear();
+
+      // Show success message
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('✅ Message sent successfully!'),
+            backgroundColor: AppColors.success,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
     } catch (e) {
       setState(() {
         _sending = false;
@@ -300,7 +308,7 @@ class _FullContactFormState extends State<_FullContactForm> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Failed to send message: $_error'),
+            content: Text('❌ Failed to send message: $_error'),
             backgroundColor: AppColors.error,
             behavior: SnackBarBehavior.floating,
           ),

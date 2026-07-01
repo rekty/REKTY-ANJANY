@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../config/supabase_config.dart';
+import 'cache_service.dart';
 
 class AdminService {
   static final AdminService instance = AdminService._();
@@ -13,6 +14,7 @@ class AdminService {
   };
 
   String? _accessToken;
+  final _cache = CacheService.instance;
 
   void setAccessToken(String token) {
     _accessToken = token;
@@ -24,7 +26,7 @@ class AdminService {
       };
 
   // ==========================================
-  // ADMIN USER VALIDATION
+  // ADMIN USER VALIDATION (NO CACHE - AUTH SENSITIVE)
   // ==========================================
 
   Future<bool> isAdmin(String email) async {
@@ -55,15 +57,31 @@ class AdminService {
   }
 
   // ==========================================
-  // APPS CRUD
+  // APPS CRUD (WITH CACHE)
   // ==========================================
 
   Future<List<Map<String, dynamic>>> getApps() async {
+    final cacheKey = _cache.generateKey('apps');
+    
+    // Try cache first
+    final cached = _cache.get<List<Map<String, dynamic>>>(cacheKey);
+    if (cached != null) {
+      print('✅ [Cache] Returning cached apps');
+      return cached;
+    }
+    
+    // Fetch from API
     final response = await http.get(
       Uri.parse('$_baseUrl/apps?select=*&order=created_at.desc'),
       headers: _authHeaders,
     );
-    return List<Map<String, dynamic>>.from(json.decode(response.body));
+    
+    final data = List<Map<String, dynamic>>.from(json.decode(response.body));
+    
+    // Cache for 5 minutes
+    _cache.set(cacheKey, data, duration: const Duration(minutes: 5));
+    
+    return data;
   }
 
   Future<Map<String, dynamic>> createApp(Map<String, dynamic> data) async {
@@ -72,7 +90,7 @@ class AdminService {
       
       final headers = {
         ..._authHeaders,
-        'Prefer': 'return=representation', // Tell Supabase to return created data
+        'Prefer': 'return=representation',
       };
       
       final response = await http.post(
@@ -85,11 +103,12 @@ class AdminService {
       print('📥 [AdminService] Response body: ${response.body}');
       
       if (response.statusCode >= 200 && response.statusCode < 300) {
+        // Clear cache after create
+        _cache.remove(_cache.generateKey('apps'));
+        
         if (response.body.isEmpty || response.body == '[]') {
-          // INSERT successful but no data returned, that's OK
           return {'success': true};
         }
-        // Parse response as array and return first item
         final List result = json.decode(response.body);
         return result.isNotEmpty ? result[0] : {'success': true};
       } else {
@@ -324,6 +343,52 @@ class AdminService {
   // ==========================================
   // CONTACT MESSAGES
   // ==========================================
+
+  Future<Map<String, dynamic>> submitContactMessage({
+    required String name,
+    required String email,
+    required String subject,
+    required String message,
+  }) async {
+    try {
+      print('📤 [AdminService] Submitting contact message');
+      
+      final data = {
+        'name': name,
+        'email': email,
+        'subject': subject,
+        'message': message,
+        'is_read': false,
+      };
+      
+      final headers = {
+        ..._headers, // Use public headers (no auth required for public submissions)
+        'Prefer': 'return=representation',
+      };
+      
+      final response = await http.post(
+        Uri.parse('$_baseUrl/contact_messages'),
+        headers: headers,
+        body: json.encode(data),
+      );
+      
+      print('📥 [AdminService] Response status: ${response.statusCode}');
+      print('📥 [AdminService] Response body: ${response.body}');
+      
+      if (response.statusCode >= 200 && response.statusCode < 300) {
+        if (response.body.isEmpty || response.body == '[]') {
+          return {'success': true};
+        }
+        final List result = json.decode(response.body);
+        return result.isNotEmpty ? result[0] : {'success': true};
+      } else {
+        throw Exception('Server returned ${response.statusCode}: ${response.body}');
+      }
+    } catch (e) {
+      print('❌ [AdminService] Error submitting message: $e');
+      rethrow;
+    }
+  }
 
   Future<List<Map<String, dynamic>>> getContactMessages() async {
     final response = await http.get(
