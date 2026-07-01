@@ -88,9 +88,19 @@ supabase/.cache/
 # Configuration Files with Credentials
 # ==========================================
 
+# IMPORTANT: Keep these files local only!
+# These files contain sensitive credentials and API keys
 lib/core/config/supabase_config.dart
 lib/core/config/*_config.dart
 !lib/core/config/*.example.dart
+
+# Admin credentials (database only, not in code)
+# Admin access is managed through Supabase admin_users table
+
+# Private deployment notes (DO NOT COMMIT)
+DEPLOYMENT_NOTES.md
+ADMIN_*.md
+*_PRIVATE.md
 
 # ==========================================
 # Secrets

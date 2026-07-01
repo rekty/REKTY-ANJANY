@@ -6,6 +6,7 @@ import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_radius.dart';
 import '../../core/constants/app_spacing.dart';
 import '../../core/config/supabase_config.dart';
+import '../../core/services/seo_service.dart';
 import '../../shared/layout/app_scaffold.dart';
 import '../../shared/layout/responsive_container.dart';
 import '../../shared/layout/section_title.dart';
@@ -25,6 +26,16 @@ class _BlogPageSupabaseState extends State<BlogPageSupabase> {
   @override
   void initState() {
     super.initState();
+    // Set SEO meta tags
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      SeoService.instance.updatePageMeta(
+        title: 'Blog - Rekty Anjany',
+        description: 'Articles, tutorials and insights about web development, programming, and technology from Rekty Anjany.',
+        keywords: 'blog, articles, tutorials, web development, programming, technology, Rekty Anjany',
+        url: 'https://rekty-anjany-5a2eb.web.app/#/blog',
+        type: 'website',
+      );
+    });
     _loadPosts();
   }
 
@@ -158,6 +169,32 @@ class _BlogCard extends StatefulWidget {
 
 class _BlogCardState extends State<_BlogCard> {
   bool _hover = false;
+  
+  // Helper method to parse color from hex string
+  Color _parseColor(String? hexColor, Color defaultColor) {
+    if (hexColor == null || hexColor.isEmpty) return defaultColor;
+    try {
+      return Color(int.parse(hexColor.replaceFirst('#', ''), radix: 16) + 0xFF000000);
+    } catch (e) {
+      return defaultColor;
+    }
+  }
+
+  // Helper method to parse font weight from string
+  FontWeight _parseFontWeight(String? fontWeightStr) {
+    switch (fontWeightStr) {
+      case 'light':
+        return FontWeight.w300;
+      case 'normal':
+        return FontWeight.w400;
+      case 'semibold':
+        return FontWeight.w600;
+      case 'bold':
+        return FontWeight.w700;
+      default:
+        return FontWeight.w700;
+    }
+  }
 
   Color _getTagColor() {
     final colorStr = widget.post['tag_color'] as String?;
@@ -188,6 +225,11 @@ class _BlogCardState extends State<_BlogCard> {
   @override
   Widget build(BuildContext context) {
     final tagColor = _getTagColor();
+    
+    // Dynamic styling from database
+    final titleColor = _parseColor(widget.post['title_color'] as String?, AppColors.textPrimary);
+    final excerptColor = _parseColor(widget.post['excerpt_color'] as String?, AppColors.textSecondary);
+    final fontWeight = _parseFontWeight(widget.post['font_weight'] as String?);
 
     return MouseRegion(
       cursor: SystemMouseCursors.click,
@@ -248,10 +290,10 @@ class _BlogCardState extends State<_BlogCard> {
             // Title
             Text(
               widget.post['title'] ?? '',
-              style: const TextStyle(
-                color: AppColors.textPrimary,
+              style: TextStyle(
+                color: titleColor,
                 fontSize: 20,
-                fontWeight: FontWeight.bold,
+                fontWeight: fontWeight,
                 height: 1.4,
               ),
             ),
@@ -261,8 +303,8 @@ class _BlogCardState extends State<_BlogCard> {
             // Excerpt
             Text(
               widget.post['excerpt'] ?? '',
-              style: const TextStyle(
-                color: AppColors.textSecondary,
+              style: TextStyle(
+                color: excerptColor,
                 fontSize: 14,
                 height: 1.7,
               ),

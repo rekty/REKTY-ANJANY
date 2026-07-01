@@ -37,22 +37,31 @@ class AppRouter {
   static final router = GoRouter(
     initialLocation: '/',
     debugLogDiagnostics: true,
+    // Path-based routing is enabled by default in go_router 13.x
+    // See index.html for usePathUrlStrategy configuration
     redirect: (context, state) async {
       final path = state.uri.path;
+      print('🔍 [Router] Redirect check for path: $path');
       
       // Skip auth check for non-admin routes
       if (!path.startsWith('/admin')) {
+        print('✅ [Router] Public route, allowing access');
         return null;
       }
+      
+      print('🔐 [Router] Admin route detected, checking authentication...');
       
       // Check if user is logged in
       final authService = SupabaseAuthService.instance;
       final user = authService.currentUser;
       
       if (user == null) {
+        print('❌ [Router] No user logged in, redirecting to login');
         // Not logged in, redirect to login
         return '/login?redirect=${Uri.encodeComponent(path)}';
       }
+      
+      print('✅ [Router] User logged in: ${user['email']}');
       
       // Check if user is admin
       final adminService = AdminService.instance;
@@ -63,13 +72,16 @@ class AppRouter {
       }
       
       final userEmail = user['email'] ?? '';
+      print('🔍 [Router] Checking if $userEmail is admin...');
       final isAdmin = await adminService.isAdmin(userEmail);
       
       if (!isAdmin) {
+        print('❌ [Router] User is NOT admin, redirecting to home');
         // Not admin, redirect to home
         return '/';
       }
       
+      print('✅ [Router] User IS admin, allowing access to $path');
       // User is admin, allow access
       return null;
     },

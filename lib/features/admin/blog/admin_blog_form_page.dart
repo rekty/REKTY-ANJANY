@@ -5,6 +5,8 @@ import '../../../core/constants/app_spacing.dart';
 import '../../../core/constants/app_radius.dart';
 import '../../../core/services/admin_service.dart';
 import '../../../core/services/supabase_auth_service.dart';
+import '../../../shared/widgets/form/color_picker_field.dart';
+import '../../../shared/widgets/form/font_weight_field.dart';
 
 class AdminBlogFormPage extends StatefulWidget {
   final String? postId;
@@ -30,6 +32,11 @@ class _AdminBlogFormPageState extends State<AdminBlogFormPage> {
   final _iconController = TextEditingController();
   final _readTimeController = TextEditingController(text: '5');
   
+  // Styling controllers
+  final _titleColorController = TextEditingController();
+  final _excerptColorController = TextEditingController();
+  final _fontWeightController = TextEditingController();
+  
   bool _isPublished = false;
   bool _loading = false;
   bool _checkingAuth = true;
@@ -38,6 +45,10 @@ class _AdminBlogFormPageState extends State<AdminBlogFormPage> {
   @override
   void initState() {
     super.initState();
+    // Set default styling values
+    _titleColorController.text = '#FFFFFF';
+    _excerptColorController.text = '#94A3B8';
+    _fontWeightController.text = 'bold';
     _checkAdminAccess();
   }
 
@@ -94,6 +105,11 @@ class _AdminBlogFormPageState extends State<AdminBlogFormPage> {
         _iconController.text = post['icon'] ?? '';
         _readTimeController.text = (post['read_time'] ?? 5).toString();
         _isPublished = post['is_published'] == true;
+        
+        // Load styling fields
+        _titleColorController.text = post['title_color'] ?? '#FFFFFF';
+        _excerptColorController.text = post['excerpt_color'] ?? '#94A3B8';
+        _fontWeightController.text = post['font_weight'] ?? 'bold';
       }
     } catch (e) {
       if (mounted) {
@@ -134,6 +150,11 @@ class _AdminBlogFormPageState extends State<AdminBlogFormPage> {
         'icon': _iconController.text.trim().isEmpty ? null : _iconController.text.trim(),
         'read_time': int.tryParse(_readTimeController.text) ?? 5,
         'is_published': _isPublished,
+        // Styling fields
+        'title_color': _titleColorController.text.trim(),
+        'excerpt_color': _excerptColorController.text.trim(),
+        'tag_color': _tagColorController.text.trim().isEmpty ? '#54C5F8' : _tagColorController.text.trim(),
+        'font_weight': _fontWeightController.text.trim(),
         'updated_at': DateTime.now().toIso8601String(),
       };
 
@@ -178,6 +199,10 @@ class _AdminBlogFormPageState extends State<AdminBlogFormPage> {
     _tagColorController.dispose();
     _iconController.dispose();
     _readTimeController.dispose();
+    // Styling controllers
+    _titleColorController.dispose();
+    _excerptColorController.dispose();
+    _fontWeightController.dispose();
     super.dispose();
   }
 
@@ -430,6 +455,62 @@ class _AdminBlogFormPageState extends State<AdminBlogFormPage> {
                             ),
                           ),
                         ],
+                      ),
+
+                      const SizedBox(height: AppSpacing.xxxl),
+
+                      // === STYLING SECTION ===
+                      const Divider(color: AppColors.border),
+                      const SizedBox(height: AppSpacing.xl),
+
+                      const Text(
+                        '🎨 Styling Options',
+                        style: TextStyle(
+                          color: AppColors.textPrimary,
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      const Text(
+                        'Customize text colors and font weight',
+                        style: TextStyle(
+                          color: AppColors.textSecondary,
+                          fontSize: 13,
+                        ),
+                      ),
+
+                      const SizedBox(height: AppSpacing.xl),
+
+                      // Title Color
+                      ColorPickerField(
+                        label: 'Title Color',
+                        value: _titleColorController.text,
+                        onChanged: (color) {
+                          setState(() => _titleColorController.text = color);
+                        },
+                      ),
+
+                      const SizedBox(height: AppSpacing.xl),
+
+                      // Excerpt Color
+                      ColorPickerField(
+                        label: 'Excerpt Color',
+                        value: _excerptColorController.text,
+                        onChanged: (color) {
+                          setState(() => _excerptColorController.text = color);
+                        },
+                      ),
+
+                      const SizedBox(height: AppSpacing.xl),
+
+                      // Font Weight
+                      FontWeightField(
+                        label: 'Font Weight',
+                        value: _fontWeightController.text,
+                        onChanged: (value) {
+                          setState(() => _fontWeightController.text = value ?? 'bold');
+                        },
                       ),
 
                       const SizedBox(height: AppSpacing.xxxl),

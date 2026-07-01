@@ -102,12 +102,16 @@ A modern, full-stack portfolio website built with Flutter and Supabase, featurin
 
 ### Admin Panel Features
 
-- 🔐 **Secure Authentication** - OAuth login (Google, GitHub, Facebook)
-- 🛡️ **Role-Based Access Control** - Email-based admin verification
-- 📊 **Dashboard** - Statistics and analytics
+- 🔐 **Secure Authentication** - OAuth login (Google, GitHub, Facebook) + Email/Password
+- 🛡️ **Role-Based Access Control** - Database-managed admin access
+- 📊 **Dashboard** - Real-time statistics and analytics
 - ✏️ **Content Management** - Full CRUD for all content types
+- 🎨 **Custom Styling** - Dynamic colors and fonts per content
 - 🖼️ **Image Upload** - Supabase Storage integration
 - 📱 **Responsive Design** - Works on all devices
+- 🔒 **Admin Protection** - Secure route middleware
+
+> **Note:** Admin panel access is restricted. Contact the developer for admin credentials.
 
 ## 🛠️ Tech Stack
 ## 🛠️ Tech Stack
@@ -124,9 +128,11 @@ A modern, full-stack portfolio website built with Flutter and Supabase, featurin
 - **Supabase** - Backend-as-a-Service
   - PostgreSQL Database
   - Row Level Security (RLS)
-  - Authentication (OAuth)
+  - Authentication (OAuth + Email/Password)
+  - OAuth Providers: Google ✅ GitHub ✅ Facebook ✅
   - Storage (File uploads)
   - RESTful API
+  - Real-time subscriptions
 
 ### Hosting
 
@@ -168,99 +174,108 @@ flutter pub get
 
 ### 3. Configure Supabase
 
-Copy the example configuration file.
+Copy the example configuration file:
 
 ```bash
-cp lib/core/config/supabase_config.dart.example lib/core/config/supabase_config.dart
+# Windows (CMD)
+copy lib\core\config\supabase_config.example.dart lib\core\config\supabase_config.dart
+
+# Linux/Mac
+cp lib/core/config/supabase_config.example.dart lib/core/config/supabase_config.dart
 ```
 
-Get your credentials from your Supabase Dashboard.
+Get your credentials from [Supabase Dashboard](https://app.supabase.com) → Project Settings → API
 
-Update:
+Update `lib/core/config/supabase_config.dart`:
 
 ```dart
 class SupabaseConfig {
-  static const String supabaseUrl = "YOUR_SUPABASE_URL";
-  static const String supabaseAnonKey = "YOUR_ANON_KEY";
+  static const String supabaseUrl = 'https://YOUR_PROJECT_ID.supabase.co';
+  static const String supabaseAnonKey = 'YOUR_SUPABASE_ANON_KEY';
 }
 ```
+
+> **Security Note:** Never commit `supabase_config.dart` to Git. It's already in `.gitignore`.
 
 ---
 
 ### 4. Setup Database
 
-Run your SQL schema inside Supabase SQL Editor.
+Run the SQL schema in your Supabase SQL Editor:
 
-```bash
-# Run supabase_schema.sql
-```
+1. Go to [Supabase Dashboard](https://app.supabase.com)
+2. Select your project
+3. Navigate to **SQL Editor**
+4. Copy and run the contents of `supabase_schema.sql`
+
+This will create all necessary tables with Row Level Security enabled.
 
 ---
 
 ### 5. Configure OAuth (Optional)
 
-Enable:
+To enable OAuth login (Google, GitHub, Facebook):
 
-- Google
-- GitHub
-- Facebook
+1. Go to **Supabase Dashboard** → Authentication → Providers
+2. Enable desired providers:
+   - **Google OAuth** ✅
+   - **GitHub OAuth** ✅
+   - **Facebook OAuth** ✅
+3. Add OAuth credentials from respective developer consoles
+4. Set redirect URL to: `https://YOUR_SUPABASE_PROJECT.supabase.co/auth/v1/callback`
 
-Redirect URL
-
-Development
-
-```
-http://localhost:PORT/auth/callback
-```
-
-Production
-
-```
-https://YOUR_DOMAIN/auth/callback
-```
+**Important:** Only add the Supabase callback URL to OAuth providers, not your website URL.
 
 ---
 
-### 6. Add Admin User
+### 6. Admin Access
 
-Insert administrator into
+Admin access is managed through the database `admin_users` table.
 
-```
-admin_users
-```
+> **Note:** For security reasons, admin setup instructions are not public. Contact the developer if you need admin access to your deployment.
 
-Example
+For development/testing purposes only, you can manually add an admin user via Supabase SQL Editor:
 
 ```sql
+-- Example (DO NOT use in production with real credentials)
 INSERT INTO admin_users (email, role)
-VALUES ('your.email@example.com','super_admin');
+VALUES ('your.email@example.com', 'super_admin');
 ```
+
+Then login at `/login` using:
+- Email/Password authentication (if configured in Supabase Auth)
+- OAuth (Google/GitHub/Facebook)
 
 ---
 
 # 💻 Development
 
-Run development server
+Run development server:
 
 ```bash
+# Chrome
 flutter run -d chrome
-```
 
-or
-
-```bash
+# Edge
 flutter run -d edge
+
+# With hot reload
+flutter run -d chrome --web-port=8080
 ```
+
+The app will be available at `http://localhost:8080` (or your specified port).
 
 ---
 
 # 📦 Build
 
-### Flutter Web
+### Flutter Web (Production)
 
 ```bash
 flutter build web --release
 ```
+
+Build output: `build/web/`
 
 ### Android APK
 
@@ -268,11 +283,15 @@ flutter build web --release
 flutter build apk --release
 ```
 
-### Android App Bundle
+Output: `build/app/outputs/flutter-apk/app-release.apk`
+
+### Android App Bundle (Google Play)
 
 ```bash
 flutter build appbundle --release
 ```
+
+Output: `build/app/outputs/bundle/release/app-release.aab`
 
 ---
 
@@ -280,13 +299,40 @@ flutter build appbundle --release
 
 ### Firebase Hosting
 
+1. Install Firebase CLI:
+
+```bash
+npm install -g firebase-tools
+```
+
+2. Login to Firebase:
+
 ```bash
 firebase login
+```
 
+3. Initialize Firebase in your project:
+
+```bash
 firebase init hosting
+```
 
+Select:
+- Public directory: `build/web`
+- Configure as single-page app: `Yes`
+- Set up automatic builds with GitHub: `No` (optional)
+
+4. Deploy:
+
+```bash
+# Build first
+flutter build web --release
+
+# Then deploy
 firebase deploy --only hosting
 ```
+
+Your site will be live at: `https://YOUR-PROJECT.web.app`
 
 ## 📁 Project Structure
 
@@ -340,35 +386,41 @@ See `supabase_schema.sql` for the complete database schema.
 
 # 🔒 Security
 
-## Protected Files
+## Credentials Protection
 
-- ✅ Supabase credentials
-- ✅ Environment variables (.env)
-- ✅ Firebase configuration
-- ✅ Admin email addresses
-- ✅ OAuth client secrets
+This repository is configured to never expose sensitive credentials:
 
----
+### ✅ Protected Files (Not in Git)
 
-## Public Files
+- `lib/core/config/supabase_config.dart` - Supabase credentials
+- `.env` files - Environment variables
+- `*-firebase-adminsdk-*.json` - Firebase admin SDK
+- `*.key`, `*.pem`, `*.p12` - Private keys
+- Database passwords and admin credentials
 
-- ✅ Supabase Anon Key
-- ✅ Firebase public configuration
-- ✅ Database schema
-- ✅ Flutter source code
+### ✅ Example Files (Safe to Commit)
+
+- `lib/core/config/supabase_config.example.dart` - Template file
+- `.env.example` - Environment template
+- Database schema without data
+
+### 🔐 Admin Access
+
+- Admin credentials are **NOT** stored in code
+- Admin access is managed via database (`admin_users` table)
+- Admin panel requires authentication via `/login`
+- Contact developer for admin access inquiries
 
 ---
 
 ## Row Level Security (RLS)
 
-Every database table uses Row Level Security.
+All database tables are protected with Row Level Security:
 
-Permission overview
-
-- Public Read Access
-- Admin Write Access
-- JWT Authentication
-- Secure API Access
+- **Public Read:** Anyone can view published content
+- **Admin Write:** Only authenticated admins can create/update/delete
+- **JWT Validation:** All requests validated with Supabase JWT tokens
+- **Role-Based:** Admin access verified against `admin_users` table
 
 ---
 
@@ -563,13 +615,20 @@ https://github.com/rekty/REKTY-ANJANY/issues
 
 Before deploying to production:
 
-- Never commit `supabase_config.dart`
-- Never expose Service Role Keys
-- Enable Row Level Security (RLS)
-- Always use HTTPS
-- Keep dependencies updated
-- Store secrets securely
-- Regularly back up your database
+- ✅ Never commit `supabase_config.dart` (already in `.gitignore`)
+- ✅ Never expose Supabase Service Role Key (only use Anon Key)
+- ✅ Enable Row Level Security (RLS) on all tables
+- ✅ Always use HTTPS in production
+- ✅ Keep Flutter and dependencies updated
+- ✅ Use environment-specific configs
+- ✅ Regularly backup your database
+- ✅ Monitor Supabase logs for suspicious activity
+- ✅ Rotate OAuth secrets periodically
+
+**Admin Credentials:**
+- Stored securely in Supabase database only
+- Not exposed in source code or environment files
+- Contact developer for admin access
 
 ---
 
@@ -585,14 +644,19 @@ It helps the project grow and motivates future development.
 
 Future planned features:
 
-- 🤖 AI Assistant
-- 🌙 Dark / Light Theme
+- ✅ OAuth Authentication (Google, GitHub, Facebook) - **COMPLETED**
+- ✅ Clean URLs (SEO-friendly routing) - **COMPLETED**
+- ✅ Dynamic Content Styling - **COMPLETED**
+- 🤖 AI Assistant Integration
+- 🌙 Dark / Light Theme Toggle
 - 📱 Progressive Web App (PWA)
 - 🔔 Push Notifications
-- 🌍 Multi-language Support
-- 📊 Advanced Analytics
-- 📈 SEO Optimization
+- 🌍 Multi-language Support (i18n)
+- 📊 Advanced Analytics Dashboard
+- 📈 Enhanced SEO Optimization
 - ⚡ Performance Improvements
+- 🔍 Search Functionality
+- 💬 Comments System for Blog
 
 ---
 

@@ -1,0 +1,11 @@
+User-agent: *
+Allow: /
+
+# Sitemap location
+Sitemap: https://rekty-anjany-5a2eb.web.app/sitemap.xml
+
+# Crawl delay
+Crawl-delay: 10
+
+# Note: Hash-based routes (#/admin, #/login) cannot be blocked via robots.txt
+# They are handled client-side and appear as the same URL to crawlers

@@ -1,0 +1,63 @@
+✨ Major Update: OAuth Authentication & Security Improvements
+
+## 🎉 New Features
+
+### OAuth Authentication
+- ✅ Google OAuth login fully functional
+- ✅ GitHub OAuth configured and ready
+- ✅ Facebook OAuth configured and ready
+- ✅ Supabase Flutter SDK integration
+- ✅ Automatic session management
+
+### SEO & Performance
+- ✅ Clean URLs (path-based routing, no hash)
+- ✅ Updated sitemap.xml with clean URLs
+- ✅ SEO-friendly meta tags
+- ✅ Optimized web performance
+
+### Content Management
+- ✅ Dynamic content styling (colors, fonts)
+- ✅ Custom title, description, tag colors per content
+- ✅ Font weight customization
+- ✅ Enhanced admin forms with color pickers
+
+## 🔐 Security Improvements
+
+- ✅ Migrated from REST API to Supabase Flutter SDK
+- ✅ Secure credential management
+- ✅ Updated .gitignore for sensitive files
+- ✅ Example config files for easy setup
+- ✅ Row Level Security on all tables
+
+## 📝 Documentation
+
+- ✅ Comprehensive README update
+- ✅ Setup instructions for new developers
+- ✅ OAuth configuration guide
+- ✅ Security best practices
+- ✅ Build & deployment commands
+
+## 🛠️ Technical Changes
+
+- Added `supabase_flutter: ^2.7.0` package
+- Added `shared_preferences: ^2.2.2` for session storage
+- Refactored authentication service
+- Updated router with clean URL support
+- Improved error handling and logging
+
+## 🔧 Bug Fixes
+
+- Fixed OAuth callback handling
+- Fixed session persistence on web
+- Fixed admin route protection
+- Resolved plugin initialization issues
+
+---
+
+**Tested:** ✅ All authentication methods working
+**Deploy:** ✅ Production build successful
+**Status:** Ready for deployment
+
+---
+
+Developed with ❤️ by Rekty Anjany

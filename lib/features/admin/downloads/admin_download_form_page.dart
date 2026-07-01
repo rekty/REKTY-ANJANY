@@ -6,6 +6,8 @@ import '../../../core/constants/app_spacing.dart';
 import '../../../core/constants/app_radius.dart';
 import '../../../core/services/admin_service.dart';
 import '../../../core/services/supabase_auth_service.dart';
+import '../../../shared/widgets/form/color_picker_field.dart';
+import '../../../shared/widgets/form/font_weight_field.dart';
 
 class AdminDownloadFormPage extends StatefulWidget {
   final String? downloadId;
@@ -33,6 +35,12 @@ class _AdminDownloadFormPageState extends State<AdminDownloadFormPage> {
   final _iconController = TextEditingController();
   final _colorController = TextEditingController();
   final _featuresController = TextEditingController();
+  
+  // Styling controllers
+  final _titleColorController = TextEditingController();
+  final _taglineColorController = TextEditingController();
+  final _descriptionColorController = TextEditingController();
+  final _fontWeightController = TextEditingController();
 
   bool _loading = false;
   bool _checkingAuth = true;
@@ -41,6 +49,11 @@ class _AdminDownloadFormPageState extends State<AdminDownloadFormPage> {
   @override
   void initState() {
     super.initState();
+    // Set default styling values
+    _titleColorController.text = '#FFFFFF';
+    _taglineColorController.text = '#54C5F8';
+    _descriptionColorController.text = '#94A3B8';
+    _fontWeightController.text = 'bold';
     _checkAdminAccess();
   }
 
@@ -99,6 +112,12 @@ class _AdminDownloadFormPageState extends State<AdminDownloadFormPage> {
         _iconController.text = download['icon'] ?? '';
         _colorController.text = download['color'] ?? '';
         
+        // Load styling fields
+        _titleColorController.text = download['title_color'] ?? '#FFFFFF';
+        _taglineColorController.text = download['tagline_color'] ?? '#54C5F8';
+        _descriptionColorController.text = download['description_color'] ?? '#94A3B8';
+        _fontWeightController.text = download['font_weight'] ?? 'bold';
+        
         if (download['features'] != null) {
           final features = download['features'];
           if (features is List) {
@@ -144,6 +163,11 @@ class _AdminDownloadFormPageState extends State<AdminDownloadFormPage> {
         'icon': _iconController.text.trim().isEmpty ? null : _iconController.text.trim(),
         'color': _colorController.text.trim().isEmpty ? null : _colorController.text.trim(),
         'features': features.isEmpty ? null : features,
+        // Styling fields
+        'title_color': _titleColorController.text.trim(),
+        'tagline_color': _taglineColorController.text.trim(),
+        'description_color': _descriptionColorController.text.trim(),
+        'font_weight': _fontWeightController.text.trim(),
         'updated_at': DateTime.now().toIso8601String(),
       };
 
@@ -191,6 +215,11 @@ class _AdminDownloadFormPageState extends State<AdminDownloadFormPage> {
     _iconController.dispose();
     _colorController.dispose();
     _featuresController.dispose();
+    // Styling controllers
+    _titleColorController.dispose();
+    _taglineColorController.dispose();
+    _descriptionColorController.dispose();
+    _fontWeightController.dispose();
     super.dispose();
   }
 
@@ -383,6 +412,73 @@ class _AdminDownloadFormPageState extends State<AdminDownloadFormPage> {
                         hint: 'Enter each feature on a new line',
                         icon: Icons.list_rounded,
                         maxLines: 5,
+                      ),
+
+                      const SizedBox(height: AppSpacing.xxxl),
+
+                      // === STYLING SECTION ===
+                      const Divider(color: AppColors.border),
+                      const SizedBox(height: AppSpacing.xl),
+
+                      const Text(
+                        '🎨 Styling Options',
+                        style: TextStyle(
+                          color: AppColors.textPrimary,
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      const Text(
+                        'Customize text colors and font weight',
+                        style: TextStyle(
+                          color: AppColors.textSecondary,
+                          fontSize: 13,
+                        ),
+                      ),
+
+                      const SizedBox(height: AppSpacing.xl),
+
+                      // Title Color
+                      ColorPickerField(
+                        label: 'Title Color',
+                        value: _titleColorController.text,
+                        onChanged: (color) {
+                          setState(() => _titleColorController.text = color);
+                        },
+                      ),
+
+                      const SizedBox(height: AppSpacing.xl),
+
+                      // Tagline Color
+                      ColorPickerField(
+                        label: 'Tagline Color',
+                        value: _taglineColorController.text,
+                        onChanged: (color) {
+                          setState(() => _taglineColorController.text = color);
+                        },
+                      ),
+
+                      const SizedBox(height: AppSpacing.xl),
+
+                      // Description Color
+                      ColorPickerField(
+                        label: 'Description Color',
+                        value: _descriptionColorController.text,
+                        onChanged: (color) {
+                          setState(() => _descriptionColorController.text = color);
+                        },
+                      ),
+
+                      const SizedBox(height: AppSpacing.xl),
+
+                      // Font Weight
+                      FontWeightField(
+                        label: 'Font Weight',
+                        value: _fontWeightController.text,
+                        onChanged: (value) {
+                          setState(() => _fontWeightController.text = value ?? 'bold');
+                        },
                       ),
 
                       const SizedBox(height: AppSpacing.xxxl),

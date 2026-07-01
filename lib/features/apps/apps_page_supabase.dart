@@ -7,12 +7,33 @@ import '../../core/constants/app_radius.dart';
 import '../../core/constants/app_shadow.dart';
 import '../../core/constants/app_spacing.dart';
 import '../../core/config/supabase_config.dart';
+import '../../core/services/seo_service.dart';
 import '../../shared/layout/app_scaffold.dart';
 import '../../shared/layout/responsive_container.dart';
 import '../../shared/layout/section_title.dart';
 
-class AppsPageSupabase extends StatelessWidget {
+class AppsPageSupabase extends StatefulWidget {
   const AppsPageSupabase({super.key});
+
+  @override
+  State<AppsPageSupabase> createState() => _AppsPageSupabaseState();
+}
+
+class _AppsPageSupabaseState extends State<AppsPageSupabase> {
+  @override
+  void initState() {
+    super.initState();
+    // Set SEO meta tags
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      SeoService.instance.updatePageMeta(
+        title: 'Apps - Rekty Anjany',
+        description: 'Explore applications built by Rekty Anjany. Download mobile and web apps for various platforms.',
+        keywords: 'apps, applications, mobile apps, web apps, download, Rekty Anjany',
+        url: 'https://rekty-anjany-5a2eb.web.app/#/apps',
+        type: 'website',
+      );
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -205,6 +226,32 @@ class _AppDetailCardState extends State<_AppDetailCard> {
     }
     return const Color(0xFF54C5F8);
   }
+  
+  // Helper method to parse color from hex string
+  Color _parseColor(String? hexColor, Color defaultColor) {
+    if (hexColor == null || hexColor.isEmpty) return defaultColor;
+    try {
+      return Color(int.parse(hexColor.replaceFirst('#', ''), radix: 16) + 0xFF000000);
+    } catch (e) {
+      return defaultColor;
+    }
+  }
+
+  // Helper method to parse font weight from string
+  FontWeight _parseFontWeight(String? fontWeightStr) {
+    switch (fontWeightStr) {
+      case 'light':
+        return FontWeight.w300;
+      case 'normal':
+        return FontWeight.w400;
+      case 'semibold':
+        return FontWeight.w600;
+      case 'bold':
+        return FontWeight.w700;
+      default:
+        return FontWeight.w700;
+    }
+  }
 
   IconData get _icon {
     final iconStr = widget.app['icon'] as String?;
@@ -304,6 +351,12 @@ class _AppDetailCardState extends State<_AppDetailCard> {
     final version = widget.app['version'] as String;
     final features = widget.app['features'] as List<dynamic>?;
     final downloadUrl = widget.app['download_url'] as String?;
+    
+    // Dynamic styling from database
+    final titleColor = _parseColor(widget.app['title_color'] as String?, AppColors.textPrimary);
+    final taglineColor = _parseColor(widget.app['tagline_color'] as String?, _color);
+    final descriptionColor = _parseColor(widget.app['description_color'] as String?, AppColors.textSecondary);
+    final fontWeight = _parseFontWeight(widget.app['font_weight'] as String?);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -313,10 +366,10 @@ class _AppDetailCardState extends State<_AppDetailCard> {
           children: [
             Text(
               name,
-              style: const TextStyle(
-                color: AppColors.textPrimary,
+              style: TextStyle(
+                color: titleColor,
                 fontSize: 26,
-                fontWeight: FontWeight.bold,
+                fontWeight: fontWeight,
               ),
             ),
             const SizedBox(width: AppSpacing.lg),
@@ -350,7 +403,7 @@ class _AppDetailCardState extends State<_AppDetailCard> {
           Text(
             tagline,
             style: TextStyle(
-              color: _color,
+              color: taglineColor,
               fontSize: 15,
               fontWeight: FontWeight.w600,
             ),
@@ -359,8 +412,8 @@ class _AppDetailCardState extends State<_AppDetailCard> {
         const SizedBox(height: AppSpacing.lg),
         Text(
           description,
-          style: const TextStyle(
-            color: AppColors.textSecondary,
+          style: TextStyle(
+            color: descriptionColor,
             fontSize: 16,
             height: 1.7,
           ),

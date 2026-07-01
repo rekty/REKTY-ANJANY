@@ -5,6 +5,8 @@ import '../../../core/constants/app_spacing.dart';
 import '../../../core/constants/app_radius.dart';
 import '../../../core/services/admin_service.dart';
 import '../../../core/services/supabase_auth_service.dart';
+import '../../../shared/widgets/form/color_picker_field.dart';
+import '../../../shared/widgets/form/font_weight_field.dart';
 
 class AdminGalleryFormPage extends StatefulWidget {
   final String? itemId;
@@ -27,6 +29,11 @@ class _AdminGalleryFormPageState extends State<AdminGalleryFormPage> {
   final _categoryController = TextEditingController();
   final _tagsController = TextEditingController();
   final _displayOrderController = TextEditingController(text: '0');
+  
+  // Styling controllers
+  final _titleColorController = TextEditingController();
+  final _descriptionColorController = TextEditingController();
+  final _fontWeightController = TextEditingController();
 
   bool _loading = false;
   bool _checkingAuth = true;
@@ -35,6 +42,10 @@ class _AdminGalleryFormPageState extends State<AdminGalleryFormPage> {
   @override
   void initState() {
     super.initState();
+    // Set default styling values
+    _titleColorController.text = '#FFFFFF';
+    _descriptionColorController.text = '#94A3B8';
+    _fontWeightController.text = 'bold';
     _checkAdminAccess();
   }
 
@@ -88,6 +99,11 @@ class _AdminGalleryFormPageState extends State<AdminGalleryFormPage> {
         _categoryController.text = item['category'] ?? '';
         _displayOrderController.text = (item['display_order'] ?? 0).toString();
         
+        // Load styling fields
+        _titleColorController.text = item['title_color'] ?? '#FFFFFF';
+        _descriptionColorController.text = item['description_color'] ?? '#94A3B8';
+        _fontWeightController.text = item['font_weight'] ?? 'bold';
+        
         // Parse tags array to comma-separated text
         if (item['tags'] != null && item['tags'] is List) {
           _tagsController.text = (item['tags'] as List).join(', ');
@@ -127,6 +143,10 @@ class _AdminGalleryFormPageState extends State<AdminGalleryFormPage> {
         'category': _categoryController.text.trim().isEmpty ? null : _categoryController.text.trim(),
         'tags': tags.isEmpty ? null : tags,
         'display_order': int.tryParse(_displayOrderController.text) ?? 0,
+        // Styling fields
+        'title_color': _titleColorController.text.trim(),
+        'description_color': _descriptionColorController.text.trim(),
+        'font_weight': _fontWeightController.text.trim(),
         'updated_at': DateTime.now().toIso8601String(),
       };
 
@@ -169,6 +189,10 @@ class _AdminGalleryFormPageState extends State<AdminGalleryFormPage> {
     _categoryController.dispose();
     _tagsController.dispose();
     _displayOrderController.dispose();
+    // Styling controllers
+    _titleColorController.dispose();
+    _descriptionColorController.dispose();
+    _fontWeightController.dispose();
     super.dispose();
   }
 
@@ -324,6 +348,62 @@ class _AdminGalleryFormPageState extends State<AdminGalleryFormPage> {
                         hint: 'Separate tags with commas (e.g., nature, sunset, mountain)',
                         icon: Icons.tag_rounded,
                         maxLines: 2,
+                      ),
+
+                      const SizedBox(height: AppSpacing.xxxl),
+
+                      // === STYLING SECTION ===
+                      const Divider(color: AppColors.border),
+                      const SizedBox(height: AppSpacing.xl),
+
+                      const Text(
+                        '🎨 Styling Options',
+                        style: TextStyle(
+                          color: AppColors.textPrimary,
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      const Text(
+                        'Customize text colors and font weight',
+                        style: TextStyle(
+                          color: AppColors.textSecondary,
+                          fontSize: 13,
+                        ),
+                      ),
+
+                      const SizedBox(height: AppSpacing.xl),
+
+                      // Title Color
+                      ColorPickerField(
+                        label: 'Title Color',
+                        value: _titleColorController.text,
+                        onChanged: (color) {
+                          setState(() => _titleColorController.text = color);
+                        },
+                      ),
+
+                      const SizedBox(height: AppSpacing.xl),
+
+                      // Description Color
+                      ColorPickerField(
+                        label: 'Description Color',
+                        value: _descriptionColorController.text,
+                        onChanged: (color) {
+                          setState(() => _descriptionColorController.text = color);
+                        },
+                      ),
+
+                      const SizedBox(height: AppSpacing.xl),
+
+                      // Font Weight
+                      FontWeightField(
+                        label: 'Font Weight',
+                        value: _fontWeightController.text,
+                        onChanged: (value) {
+                          setState(() => _fontWeightController.text = value ?? 'bold');
+                        },
                       ),
 
                       const SizedBox(height: AppSpacing.xxxl),

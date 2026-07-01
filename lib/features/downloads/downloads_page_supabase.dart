@@ -7,12 +7,33 @@ import '../../core/constants/app_radius.dart';
 import '../../core/constants/app_shadow.dart';
 import '../../core/constants/app_spacing.dart';
 import '../../core/config/supabase_config.dart';
+import '../../core/services/seo_service.dart';
 import '../../shared/layout/app_scaffold.dart';
 import '../../shared/layout/responsive_container.dart';
 import '../../shared/layout/section_title.dart';
 
-class DownloadsPageSupabase extends StatelessWidget {
+class DownloadsPageSupabase extends StatefulWidget {
   const DownloadsPageSupabase({super.key});
+
+  @override
+  State<DownloadsPageSupabase> createState() => _DownloadsPageSupabaseState();
+}
+
+class _DownloadsPageSupabaseState extends State<DownloadsPageSupabase> {
+  @override
+  void initState() {
+    super.initState();
+    // Set SEO meta tags
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      SeoService.instance.updatePageMeta(
+        title: 'Downloads - Rekty Anjany',
+        description: 'Download the latest APKs, tools and resources from Rekty Anjany. Free downloads for Android, iOS, and Web.',
+        keywords: 'downloads, APK, tools, resources, free download, Rekty Anjany',
+        url: 'https://rekty-anjany-5a2eb.web.app/#/downloads',
+        type: 'website',
+      );
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -222,6 +243,32 @@ class _DownloadCardState extends State<_DownloadCard> {
     }
     return const Color(0xFF54C5F8);
   }
+  
+  // Helper method to parse color from hex string
+  Color _parseColor(String? hexColor, Color defaultColor) {
+    if (hexColor == null || hexColor.isEmpty) return defaultColor;
+    try {
+      return Color(int.parse(hexColor.replaceFirst('#', ''), radix: 16) + 0xFF000000);
+    } catch (e) {
+      return defaultColor;
+    }
+  }
+
+  // Helper method to parse font weight from string
+  FontWeight _parseFontWeight(String? fontWeightStr) {
+    switch (fontWeightStr) {
+      case 'light':
+        return FontWeight.w300;
+      case 'normal':
+        return FontWeight.w400;
+      case 'semibold':
+        return FontWeight.w600;
+      case 'bold':
+        return FontWeight.w700;
+      default:
+        return FontWeight.w700;
+    }
+  }
 
   IconData get _icon {
     final iconStr = widget.data['icon'] as String?;
@@ -286,6 +333,12 @@ class _DownloadCardState extends State<_DownloadCard> {
     final features = widget.data['features'] as List<dynamic>?;
     final downloadUrl = widget.data['download_url'] as String?;
     final sourceUrl = widget.data['source_url'] as String?;
+    
+    // Dynamic styling from database
+    final titleColor = _parseColor(widget.data['title_color'] as String?, AppColors.textPrimary);
+    final taglineColor = _parseColor(widget.data['tagline_color'] as String?, _color);
+    final descriptionColor = _parseColor(widget.data['description_color'] as String?, AppColors.textSecondary);
+    final fontWeight = _parseFontWeight(widget.data['font_weight'] as String?);
 
     return MouseRegion(
       onEnter: (_) => setState(() => _hover = true),
@@ -318,10 +371,10 @@ class _DownloadCardState extends State<_DownloadCard> {
                     children: [
                       Text(
                         name,
-                        style: const TextStyle(
-                          color: AppColors.textPrimary,
+                        style: TextStyle(
+                          color: titleColor,
                           fontSize: 24,
-                          fontWeight: FontWeight.bold,
+                          fontWeight: fontWeight,
                         ),
                       ),
                       const SizedBox(height: AppSpacing.sm),
@@ -330,7 +383,7 @@ class _DownloadCardState extends State<_DownloadCard> {
                           _InfoChip(
                             icon: Icons.tag_rounded,
                             label: version,
-                            color: _color,
+                            color: taglineColor,
                           ),
                           const SizedBox(width: 10),
                           _InfoChip(
@@ -357,8 +410,8 @@ class _DownloadCardState extends State<_DownloadCard> {
             // Description
             Text(
               description,
-              style: const TextStyle(
-                color: AppColors.textSecondary,
+              style: TextStyle(
+                color: descriptionColor,
                 fontSize: 15,
                 height: 1.7,
               ),

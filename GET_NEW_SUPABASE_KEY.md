@@ -200,4 +200,4 @@ Supabase Dashboard
 
 ---
 
-Made with ❤️ by Kiro
+Made with ❤️ by Rekty

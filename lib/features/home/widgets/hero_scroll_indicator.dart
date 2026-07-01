@@ -16,7 +16,6 @@ class _HeroScrollIndicatorState
     with SingleTickerProviderStateMixin {
 
   late final AnimationController _controller;
-
   late final Animation<double> _animation;
 
   @override
@@ -45,42 +44,77 @@ class _HeroScrollIndicatorState
     super.dispose();
   }
 
+  void _scrollDown() {
+    // Scroll to next section (approximately one viewport height)
+    final scrollController = PrimaryScrollController.of(context);
+    
+    // Debug log
+    debugPrint('🔵 Scroll Down clicked!');
+    
+    if (scrollController != null && scrollController.hasClients) {
+      final viewportHeight = MediaQuery.of(context).size.height;
+      final targetPosition = viewportHeight * 0.9;
+      
+      debugPrint('🔵 Scrolling to: $targetPosition');
+      
+      scrollController.animateTo(
+        targetPosition,
+        duration: const Duration(milliseconds: 800),
+        curve: Curves.easeInOut,
+      );
+    } else {
+      debugPrint('❌ ScrollController not available');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: _animation,
-      builder: (_, __) {
-        return Transform.translate(
-          offset: Offset(
-            0,
-            _animation.value,
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-
-              const Text(
-                "Scroll Down",
-                style: TextStyle(
-                  color: AppColors.textSecondary,
-                  fontSize: 13,
-                  letterSpacing: 1.2,
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: () {
+          debugPrint('🔵 InkWell tapped!');
+          _scrollDown();
+        },
+        borderRadius: BorderRadius.circular(12),
+        child: Padding(
+          padding: const EdgeInsets.all(12.0),
+          child: AnimatedBuilder(
+            animation: _animation,
+            builder: (_, __) {
+              return Transform.translate(
+                offset: Offset(
+                  0,
+                  _animation.value,
                 ),
-              ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Text(
+                      "Scroll Down",
+                      style: TextStyle(
+                        color: AppColors.textSecondary,
+                        fontSize: 13,
+                        letterSpacing: 1.2,
+                      ),
+                    ),
 
-              const SizedBox(
-                height: AppSpacing.sm,
-              ),
+                    const SizedBox(
+                      height: AppSpacing.sm,
+                    ),
 
-              Icon(
-                Icons.keyboard_double_arrow_down_rounded,
-                color: AppColors.primary.withValues(alpha: .85),
-                size: 34,
-              ),
-            ],
+                    Icon(
+                      Icons.keyboard_double_arrow_down_rounded,
+                      color: AppColors.primary.withValues(alpha: .85),
+                      size: 34,
+                    ),
+                  ],
+                ),
+              );
+            },
           ),
-        );
-      },
+        ),
+      ),
     );
   }
 }

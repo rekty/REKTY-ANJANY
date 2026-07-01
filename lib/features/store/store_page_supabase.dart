@@ -7,6 +7,7 @@ import '../../core/constants/app_radius.dart';
 import '../../core/constants/app_shadow.dart';
 import '../../core/constants/app_spacing.dart';
 import '../../core/config/supabase_config.dart';
+import '../../core/services/seo_service.dart';
 import '../../shared/layout/app_scaffold.dart';
 import '../../shared/layout/responsive_container.dart';
 import '../../shared/layout/section_title.dart';
@@ -26,6 +27,16 @@ class _StorePageSupabaseState extends State<StorePageSupabase> {
   @override
   void initState() {
     super.initState();
+    // Set SEO meta tags
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      SeoService.instance.updatePageMeta(
+        title: 'Store - Rekty Anjany',
+        description: 'Premium digital products, tools, and resources for developers and creators. Shop quality products from Rekty Anjany.',
+        keywords: 'store, shop, digital products, tools, resources, premium, Rekty Anjany',
+        url: 'https://rekty-anjany-5a2eb.web.app/#/store',
+        type: 'website',
+      );
+    });
     _loadProducts();
   }
 
@@ -161,6 +172,32 @@ class _ProductCard extends StatefulWidget {
 
 class _ProductCardState extends State<_ProductCard> {
   bool _hover = false;
+  
+  // Helper method to parse color from hex string
+  Color _parseColor(String? hexColor, Color defaultColor) {
+    if (hexColor == null || hexColor.isEmpty) return defaultColor;
+    try {
+      return Color(int.parse(hexColor.replaceFirst('#', ''), radix: 16) + 0xFF000000);
+    } catch (e) {
+      return defaultColor;
+    }
+  }
+
+  // Helper method to parse font weight from string
+  FontWeight _parseFontWeight(String? fontWeightStr) {
+    switch (fontWeightStr) {
+      case 'light':
+        return FontWeight.w300;
+      case 'normal':
+        return FontWeight.w400;
+      case 'semibold':
+        return FontWeight.w600;
+      case 'bold':
+        return FontWeight.w700;
+      default:
+        return FontWeight.w700;
+    }
+  }
 
   IconData _getIcon() {
     final iconStr = widget.product['icon'] as String?;
@@ -234,6 +271,11 @@ class _ProductCardState extends State<_ProductCard> {
     final badge = widget.product['badge'] as String?;
     final rating = widget.product['rating'] as num? ?? 5.0;
     final salesCount = widget.product['sales_count'] as int? ?? 0;
+    
+    // Dynamic styling from database
+    final titleColor = _parseColor(widget.product['title_color'] as String?, AppColors.textPrimary);
+    final descriptionColor = _parseColor(widget.product['description_color'] as String?, AppColors.textSecondary);
+    final fontWeight = _parseFontWeight(widget.product['font_weight'] as String?);
 
     return MouseRegion(
       cursor: SystemMouseCursors.click,
@@ -304,10 +346,10 @@ class _ProductCardState extends State<_ProductCard> {
                   // Title
                   Text(
                     widget.product['name'] ?? '',
-                    style: const TextStyle(
-                      color: AppColors.textPrimary,
+                    style: TextStyle(
+                      color: titleColor,
                       fontSize: 20,
-                      fontWeight: FontWeight.bold,
+                      fontWeight: fontWeight,
                     ),
                   ),
 
@@ -316,8 +358,8 @@ class _ProductCardState extends State<_ProductCard> {
                   // Description
                   Text(
                     widget.product['description'] ?? '',
-                    style: const TextStyle(
-                      color: AppColors.textSecondary,
+                    style: TextStyle(
+                      color: descriptionColor,
                       fontSize: 14,
                       height: 1.6,
                     ),

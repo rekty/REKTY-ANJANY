@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_shadow.dart';
 import '../../../core/constants/app_spacing.dart';
+import '../../../core/constants/app_breakpoints.dart';
 
 import 'login_button.dart';
 import 'nav_logo.dart';
@@ -13,6 +14,20 @@ class Navbar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Get actual screen width, not device type
+    final screenWidth = MediaQuery.of(context).size.width;
+    
+    // Show menu on screens >= 800px (lower threshold for desktop site on mobile)
+    final bool showMenu = screenWidth >= 800;
+    final bool useCompactPadding = screenWidth < 800;
+    
+    final double horizontalPadding = useCompactPadding 
+        ? AppSpacing.mobilePadding 
+        : AppSpacing.tabletPadding;
+
+    // Debug: print screen width (remove after testing)
+    debugPrint('🔍 Navbar - Screen width: $screenWidth, showMenu: $showMenu');
+
     return Container(
       height: AppSpacing.navbarHeight,
       width: double.infinity,
@@ -25,21 +40,26 @@ class Navbar extends StatelessWidget {
           constraints: const BoxConstraints(
             maxWidth: AppSpacing.maxWidth,
           ),
-          child: const Padding(
+          child: Padding(
             padding: EdgeInsets.symmetric(
-              horizontal: AppSpacing.desktopPadding,
+              horizontal: horizontalPadding,
             ),
             child: Row(
               children: [
-                NavLogo(),
+                const Flexible(child: NavLogo()),
 
-                Spacer(),
+                const Spacer(),
 
-                NavMenu(),
+                // Show menu with responsive items
+                if (showMenu) ...[
+                  const NavMenu(),
+                  const SizedBox(width: AppSpacing.xl),
+                ],
 
-                SizedBox(width: AppSpacing.xxl),
-
-                LoginButton(),
+                const LoginButton(),
+                
+                // Extra padding on right to prevent cutoff
+                SizedBox(width: useCompactPadding ? 0 : AppSpacing.md),
               ],
             ),
           ),

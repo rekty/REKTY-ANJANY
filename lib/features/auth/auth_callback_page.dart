@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'dart:html' as html;
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../core/constants/app_colors.dart';
 import '../../core/services/supabase_auth_service.dart';
@@ -8,7 +8,8 @@ import '../../shared/widgets/background/mesh_gradient_background.dart';
 
 /// OAuth Callback Page
 /// Handles redirect from OAuth providers (Google, GitHub, Facebook)
-/// Parses access_token from URL and saves session
+/// The Supabase Flutter SDK automatically parses the URL fragment
+/// and establishes the session when this page loads
 class AuthCallbackPage extends StatefulWidget {
   const AuthCallbackPage({super.key});
 
@@ -35,36 +36,26 @@ class _AuthCallbackPageState extends State<AuthCallbackPage> {
     });
 
     try {
-      // Parse URL untuk access_token
-      final currentUrl = html.window.location.href;
-      print('🔍 [AuthCallback] Current URL: $currentUrl');
+      print('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+      print('🔍 [AuthCallback] Starting OAuth callback handling');
+      print('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
       
-      final uri = Uri.parse(currentUrl);
+      // Wait a moment for Supabase SDK to process the URL fragment
+      await Future.delayed(const Duration(milliseconds: 500));
       
-      String? accessToken;
-      String? refreshToken;
+      // Check if user is now authenticated
+      final currentUser = _auth.user;
       
-      // Try to parse from fragment (hash) first
-      if (uri.fragment.isNotEmpty) {
-        print('🔍 [AuthCallback] Parsing from fragment: ${uri.fragment}');
-        final fragmentParams = Uri.splitQueryString(uri.fragment);
-        accessToken = fragmentParams['access_token'];
-        refreshToken = fragmentParams['refresh_token'];
+      print('📊 [AuthCallback] Auth check result:');
+      print('   User authenticated: ${currentUser != null}');
+      if (currentUser != null) {
+        print('   User email: ${currentUser.email}');
+        print('   User ID: ${currentUser.id}');
       }
+      print('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
       
-      // If not in fragment, try query parameters
-      if (accessToken == null && uri.queryParameters.isNotEmpty) {
-        print('🔍 [AuthCallback] Parsing from query params');
-        accessToken = uri.queryParameters['access_token'];
-        refreshToken = uri.queryParameters['refresh_token'];
-      }
-      
-      print('🔍 [AuthCallback] Access token found: ${accessToken != null}');
-      
-      // Save session if token found
-      if (accessToken != null && accessToken.isNotEmpty) {
-        print('✅ [AuthCallback] Saving OAuth session...');
-        await _auth.saveOAuthSession(accessToken);
+      if (currentUser != null) {
+        print('✅ [AuthCallback] OAuth login successful');
         
         setState(() {
           _success = true;
@@ -72,20 +63,23 @@ class _AuthCallbackPageState extends State<AuthCallbackPage> {
           _message = 'Login successful! Redirecting...';
         });
         
-        print('✅ [AuthCallback] Session saved, redirecting to home...');
-        
-        // Wait a bit then redirect using JavaScript (more reliable for hash routing)
+        // Wait a bit then redirect
         await Future.delayed(const Duration(milliseconds: 1500));
         
-        // Use JavaScript redirect for more reliable navigation
-        html.window.location.href = 'https://rekty-anjany-5a2eb.web.app/#/';
+        print('✅ [AuthCallback] Redirecting to admin...');
+        
+        // Redirect to admin (clean URL)
+        if (mounted) {
+          context.go('/admin');
+        }
       } else {
-        // No token found
-        print('❌ [AuthCallback] No access token found in URL');
+        // No session found - OAuth may have failed
+        print('❌ [AuthCallback] No user session found after OAuth');
+        
         setState(() {
           _success = false;
           _processing = false;
-          _message = 'No authentication token found. Please try again.';
+          _message = 'Login failed. Please try again.';
         });
       }
     } catch (e) {
@@ -198,9 +192,7 @@ class _AuthCallbackPageState extends State<AuthCallbackPage> {
                     
                     // Manual redirect button
                     TextButton(
-                      onPressed: () {
-                        html.window.location.href = 'https://rekty-anjany-5a2eb.web.app/#/';
-                      },
+                      onPressed: () => context.go('/'),
                       child: const Text(
                         'Go to Home',
                         style: TextStyle(

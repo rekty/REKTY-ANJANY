@@ -6,6 +6,8 @@ import '../../../core/constants/app_spacing.dart';
 import '../../../core/constants/app_radius.dart';
 import '../../../core/services/admin_service.dart';
 import '../../../core/services/supabase_auth_service.dart';
+import '../../../shared/widgets/form/color_picker_field.dart';
+import '../../../shared/widgets/form/font_weight_field.dart';
 
 class AdminContactPage extends StatefulWidget {
   const AdminContactPage({super.key});
@@ -24,6 +26,11 @@ class _AdminContactPageState extends State<AdminContactPage> {
   final _phoneController = TextEditingController();
   final _addressController = TextEditingController();
   final _socialMediaController = TextEditingController();
+  
+  // Styling controllers
+  final _titleColorController = TextEditingController();
+  final _descriptionColorController = TextEditingController();
+  final _fontWeightController = TextEditingController();
 
   bool _loading = false;
   bool _checkingAuth = true;
@@ -32,6 +39,10 @@ class _AdminContactPageState extends State<AdminContactPage> {
   @override
   void initState() {
     super.initState();
+    // Set default styling values
+    _titleColorController.text = '#FFFFFF';
+    _descriptionColorController.text = '#94A3B8';
+    _fontWeightController.text = 'bold';
     _checkAdminAccess();
   }
 
@@ -77,6 +88,11 @@ class _AdminContactPageState extends State<AdminContactPage> {
         _phoneController.text = contactData['phone'] ?? '';
         _addressController.text = contactData['address'] ?? '';
         
+        // Load styling fields
+        _titleColorController.text = contactData['title_color'] ?? '#FFFFFF';
+        _descriptionColorController.text = contactData['description_color'] ?? '#94A3B8';
+        _fontWeightController.text = contactData['font_weight'] ?? 'bold';
+        
         // Parse JSON field to text
         if (contactData['social_media'] != null) {
           _socialMediaController.text = json.encode(contactData['social_media']);
@@ -115,6 +131,10 @@ class _AdminContactPageState extends State<AdminContactPage> {
         'phone': _phoneController.text.trim(),
         'address': _addressController.text.trim(),
         'social_media': socialMedia,
+        // Styling fields
+        'title_color': _titleColorController.text.trim(),
+        'description_color': _descriptionColorController.text.trim(),
+        'font_weight': _fontWeightController.text.trim(),
         'updated_at': DateTime.now().toIso8601String(),
       };
 
@@ -150,6 +170,10 @@ class _AdminContactPageState extends State<AdminContactPage> {
     _phoneController.dispose();
     _addressController.dispose();
     _socialMediaController.dispose();
+    // Styling controllers
+    _titleColorController.dispose();
+    _descriptionColorController.dispose();
+    _fontWeightController.dispose();
     super.dispose();
   }
 
@@ -312,6 +336,62 @@ class _AdminContactPageState extends State<AdminContactPage> {
                                   ),
                                 ],
                               ),
+                            ),
+
+                            const SizedBox(height: AppSpacing.xxxl),
+
+                            // === STYLING SECTION ===
+                            const Divider(color: AppColors.border),
+                            const SizedBox(height: AppSpacing.xl),
+
+                            const Text(
+                              '🎨 Styling Options',
+                              style: TextStyle(
+                                color: AppColors.textPrimary,
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            const Text(
+                              'Customize text colors and font weight for contact cards',
+                              style: TextStyle(
+                                color: AppColors.textSecondary,
+                                fontSize: 13,
+                              ),
+                            ),
+
+                            const SizedBox(height: AppSpacing.xl),
+
+                            // Title Color (for card labels like "Email", "Website")
+                            ColorPickerField(
+                              label: 'Label Color',
+                              value: _titleColorController.text,
+                              onChanged: (color) {
+                                setState(() => _titleColorController.text = color);
+                              },
+                            ),
+
+                            const SizedBox(height: AppSpacing.xl),
+
+                            // Description Color (for card values)
+                            ColorPickerField(
+                              label: 'Value Color',
+                              value: _descriptionColorController.text,
+                              onChanged: (color) {
+                                setState(() => _descriptionColorController.text = color);
+                              },
+                            ),
+
+                            const SizedBox(height: AppSpacing.xl),
+
+                            // Font Weight
+                            FontWeightField(
+                              label: 'Font Weight',
+                              value: _fontWeightController.text,
+                              onChanged: (value) {
+                                setState(() => _fontWeightController.text = value ?? 'bold');
+                              },
                             ),
                           ],
                         ),

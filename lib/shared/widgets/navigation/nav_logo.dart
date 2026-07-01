@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_duration.dart';
+import '../../../core/constants/app_breakpoints.dart';
 
 class NavLogo extends StatefulWidget {
   const NavLogo({super.key});
@@ -16,6 +17,10 @@ class _NavLogoState extends State<NavLogo> {
 
   @override
   Widget build(BuildContext context) {
+    // Use screen width instead of device detection
+    final screenWidth = MediaQuery.of(context).size.width;
+    final useCompactLayout = screenWidth < 800;
+    
     return MouseRegion(
       cursor: SystemMouseCursors.click,
       onEnter: (_) => setState(() => _hover = true),
@@ -30,8 +35,8 @@ class _NavLogoState extends State<NavLogo> {
             children: [
               AnimatedContainer(
                 duration: AppDuration.hover,
-                width: 16,
-                height: 16,
+                width: useCompactLayout ? 12 : 16,
+                height: useCompactLayout ? 12 : 16,
                 decoration: BoxDecoration(
                   color: AppColors.primary,
                   shape: BoxShape.circle,
@@ -47,7 +52,7 @@ class _NavLogoState extends State<NavLogo> {
                 ),
               ),
 
-              const SizedBox(width: 12),
+              SizedBox(width: useCompactLayout ? 8 : 12),
 
               AnimatedDefaultTextStyle(
                 duration: AppDuration.hover,
@@ -55,9 +60,9 @@ class _NavLogoState extends State<NavLogo> {
                   color: _hover
                       ? AppColors.primary
                       : AppColors.textPrimary,
-                  fontSize: 24,
+                  fontSize: useCompactLayout ? 16 : 24,
                   fontWeight: FontWeight.bold,
-                  letterSpacing: 1.2,
+                  letterSpacing: useCompactLayout ? 0.5 : 1.2,
                 ),
                 child: const Text("REKTY ANJANY"),
               ),

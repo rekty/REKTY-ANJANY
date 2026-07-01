@@ -5,6 +5,8 @@ import '../../../core/constants/app_spacing.dart';
 import '../../../core/constants/app_radius.dart';
 import '../../../core/services/admin_service.dart';
 import '../../../core/services/supabase_auth_service.dart';
+import '../../../shared/widgets/form/color_picker_field.dart';
+import '../../../shared/widgets/form/font_weight_field.dart';
 
 class AdminProductFormPage extends StatefulWidget {
   final String? productId;
@@ -26,6 +28,11 @@ class _AdminProductFormPageState extends State<AdminProductFormPage> {
   final _originalPriceController = TextEditingController();
   final _iconController = TextEditingController();
   final _badgeController = TextEditingController();
+  
+  // Styling controllers
+  final _titleColorController = TextEditingController();
+  final _descriptionColorController = TextEditingController();
+  final _fontWeightController = TextEditingController();
 
   bool _loading = false;
   bool _checkingAuth = true;
@@ -35,6 +42,10 @@ class _AdminProductFormPageState extends State<AdminProductFormPage> {
   @override
   void initState() {
     super.initState();
+    // Set default styling values
+    _titleColorController.text = '#FFFFFF';
+    _descriptionColorController.text = '#94A3B8';
+    _fontWeightController.text = 'bold';
     _checkAdminAccess();
   }
 
@@ -78,6 +89,11 @@ class _AdminProductFormPageState extends State<AdminProductFormPage> {
         _iconController.text = product['icon'] ?? '';
         _badgeController.text = product['badge'] ?? '';
         _isActive = product['is_active'] ?? true;
+        
+        // Load styling fields
+        _titleColorController.text = product['title_color'] ?? '#FFFFFF';
+        _descriptionColorController.text = product['description_color'] ?? '#94A3B8';
+        _fontWeightController.text = product['font_weight'] ?? 'bold';
       }
     } catch (e) {
       if (mounted) {
@@ -106,6 +122,10 @@ class _AdminProductFormPageState extends State<AdminProductFormPage> {
         'icon': _iconController.text.trim().isEmpty ? null : _iconController.text.trim(),
         'badge': _badgeController.text.trim().isEmpty ? null : _badgeController.text.trim(),
         'is_active': _isActive,
+        // Styling fields
+        'title_color': _titleColorController.text.trim(),
+        'description_color': _descriptionColorController.text.trim(),
+        'font_weight': _fontWeightController.text.trim(),
         'updated_at': DateTime.now().toIso8601String(),
       };
 
@@ -145,6 +165,10 @@ class _AdminProductFormPageState extends State<AdminProductFormPage> {
     _originalPriceController.dispose();
     _iconController.dispose();
     _badgeController.dispose();
+    // Styling controllers
+    _titleColorController.dispose();
+    _descriptionColorController.dispose();
+    _fontWeightController.dispose();
     super.dispose();
   }
 
@@ -275,6 +299,62 @@ class _AdminProductFormPageState extends State<AdminProductFormPage> {
                         activeColor: AppColors.primary,
                         tileColor: AppColors.card,
                         shape: RoundedRectangleBorder(borderRadius: AppRadius.input),
+                      ),
+
+                      const SizedBox(height: AppSpacing.xxxl),
+
+                      // === STYLING SECTION ===
+                      const Divider(color: AppColors.border),
+                      const SizedBox(height: AppSpacing.xl),
+
+                      const Text(
+                        '🎨 Styling Options',
+                        style: TextStyle(
+                          color: AppColors.textPrimary,
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      const Text(
+                        'Customize text colors and font weight',
+                        style: TextStyle(
+                          color: AppColors.textSecondary,
+                          fontSize: 13,
+                        ),
+                      ),
+
+                      const SizedBox(height: AppSpacing.xl),
+
+                      // Title Color
+                      ColorPickerField(
+                        label: 'Title Color',
+                        value: _titleColorController.text,
+                        onChanged: (color) {
+                          setState(() => _titleColorController.text = color);
+                        },
+                      ),
+
+                      const SizedBox(height: AppSpacing.xl),
+
+                      // Description Color
+                      ColorPickerField(
+                        label: 'Description Color',
+                        value: _descriptionColorController.text,
+                        onChanged: (color) {
+                          setState(() => _descriptionColorController.text = color);
+                        },
+                      ),
+
+                      const SizedBox(height: AppSpacing.xl),
+
+                      // Font Weight
+                      FontWeightField(
+                        label: 'Font Weight',
+                        value: _fontWeightController.text,
+                        onChanged: (value) {
+                          setState(() => _fontWeightController.text = value ?? 'bold');
+                        },
                       ),
 
                       const SizedBox(height: AppSpacing.xxxl),

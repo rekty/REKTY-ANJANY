@@ -4,13 +4,34 @@ import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_radius.dart';
 import '../../core/constants/app_shadow.dart';
 import '../../core/constants/app_spacing.dart';
+import '../../core/services/seo_service.dart';
 // import '../../core/services/supabase_service.dart'; // TEMPORARILY DISABLED
 import '../../shared/layout/app_scaffold.dart';
 import '../../shared/layout/responsive_container.dart';
 import '../../shared/layout/section_title.dart';
 
-class ContactPage extends StatelessWidget {
+class ContactPage extends StatefulWidget {
   const ContactPage({super.key});
+
+  @override
+  State<ContactPage> createState() => _ContactPageState();
+}
+
+class _ContactPageState extends State<ContactPage> {
+  @override
+  void initState() {
+    super.initState();
+    // Set SEO meta tags
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      SeoService.instance.updatePageMeta(
+        title: 'Contact - Rekty Anjany',
+        description: 'Get in touch with Rekty Anjany. Have questions, feedback, or want to collaborate? We\'d love to hear from you.',
+        keywords: 'contact, email, get in touch, collaborate, Rekty Anjany',
+        url: 'https://rekty-anjany-5a2eb.web.app/#/contact',
+        type: 'website',
+      );
+    });
+  }
 
   @override
   Widget build(BuildContext context) {

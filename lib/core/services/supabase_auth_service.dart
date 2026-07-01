@@ -1,99 +1,57 @@
 import 'dart:convert';
-import 'package:http/http.dart' as http;
-import 'dart:html' as html;
+import 'package:flutter/foundation.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../config/supabase_config.dart';
 
-/// Supabase Authentication using REST API
-/// More stable than supabase_flutter package on web
+/// Supabase Authentication using official supabase_flutter package
+/// More reliable for OAuth on web
 class SupabaseAuthService {
   static SupabaseAuthService? _instance;
   static SupabaseAuthService get instance => _instance ??= SupabaseAuthService._();
 
-  final String supabaseUrl = SupabaseConfig.supabaseUrl;
-  final String supabaseAnonKey = SupabaseConfig.supabaseAnonKey;
+  SupabaseAuthService._();
   
-  String? _accessToken;
-  Map<String, dynamic>? _currentUser;
+  // Get Supabase client (Supabase is initialized in main.dart)
+  SupabaseClient get _supabase => Supabase.instance.client;
 
-  SupabaseAuthService._() {
-    _loadSessionFromStorage();
-  }
-
-  String get _authUrl => '$supabaseUrl/auth/v1';
-
-  Map<String, String> _headers({String? token}) => {
-    'apikey': supabaseAnonKey,
-    'Content-Type': 'application/json',
-    if (token != null) 'Authorization': 'Bearer $token',
-  };
-
-  void _loadSessionFromStorage() {
-    try {
-      final token = html.window.localStorage['supabase_access_token'];
-      final userJson = html.window.localStorage['supabase_user'];
-      
-      if (token != null && userJson != null) {
-        _accessToken = token;
-        _currentUser = json.decode(userJson);
-      }
-    } catch (e) {
-      // Ignore
-    }
-  }
-
-  void _saveSessionToStorage() {
-    try {
-      if (_accessToken != null && _currentUser != null) {
-        html.window.localStorage['supabase_access_token'] = _accessToken!;
-        html.window.localStorage['supabase_user'] = json.encode(_currentUser);
-      }
-    } catch (e) {
-      // Ignore
-    }
-  }
-
-  void _clearSessionFromStorage() {
-    try {
-      html.window.localStorage.remove('supabase_access_token');
-      html.window.localStorage.remove('supabase_user');
-    } catch (e) {
-      // Ignore
-    }
-  }
-
+  // ==========================================
+  // EMAIL/PASSWORD AUTHENTICATION
+  // ==========================================
+  
   Future<Map<String, dynamic>> signInWithEmail({
     required String email,
     required String password,
   }) async {
     try {
-      final response = await http.post(
-        Uri.parse('$_authUrl/token?grant_type=password'),
-        headers: _headers(),
-        body: json.encode({
-          'email': email,
-          'password': password,
-        }),
+      debugPrint('🔐 Attempting email/password login for: $email');
+      
+      final response = await _supabase.auth.signInWithPassword(
+        email: email,
+        password: password,
       );
-
-      if (response.statusCode == 200) {
-        final data = json.decode(response.body);
-        _accessToken = data['access_token'];
-        _currentUser = data['user'];
-        _saveSessionToStorage();
-        
+      
+      if (response.user != null) {
+        debugPrint('✅ Login successful for: ${response.user!.email}');
         return {
           'success': true,
-          'user': _currentUser,
+          'user': response.user!.toJson(),
           'message': 'Login berhasil!',
         };
       } else {
-        final error = json.decode(response.body);
+        debugPrint('❌ Login failed: No user returned');
         return {
           'success': false,
-          'message': _getErrorMessage(error['error_description'] ?? 'Login failed'),
+          'message': 'Login gagal',
         };
       }
+    } on AuthException catch (e) {
+      debugPrint('❌ Auth error: ${e.message}');
+      return {
+        'success': false,
+        'message': _getErrorMessage(e.message),
+      };
     } catch (e) {
+      debugPrint('❌ Unexpected error: $e');
       return {
         'success': false,
         'message': 'Terjadi kesalahan. Silakan coba lagi.',
@@ -107,34 +65,34 @@ class SupabaseAuthService {
     Map<String, dynamic>? metadata,
   }) async {
     try {
-      final Map<String, dynamic> body = {
-        'email': email,
-        'password': password,
-      };
+      debugPrint('📝 Attempting signup for: $email');
       
-      if (metadata != null && metadata.isNotEmpty) {
-        body['data'] = metadata;
-      }
-      
-      final response = await http.post(
-        Uri.parse('$_authUrl/signup'),
-        headers: _headers(),
-        body: json.encode(body),
+      final response = await _supabase.auth.signUp(
+        email: email,
+        password: password,
+        data: metadata,
       );
-
-      if (response.statusCode == 200) {
+      
+      if (response.user != null) {
+        debugPrint('✅ Signup successful for: ${response.user!.email}');
         return {
           'success': true,
           'message': 'Akun berhasil dibuat! Silakan cek email untuk verifikasi.',
         };
       } else {
-        final error = json.decode(response.body);
         return {
           'success': false,
-          'message': _getErrorMessage(error['error_description'] ?? 'Signup failed'),
+          'message': 'Signup gagal',
         };
       }
+    } on AuthException catch (e) {
+      debugPrint('❌ Signup error: ${e.message}');
+      return {
+        'success': false,
+        'message': _getErrorMessage(e.message),
+      };
     } catch (e) {
+      debugPrint('❌ Unexpected signup error: $e');
       return {
         'success': false,
         'message': 'Terjadi kesalahan. Silakan coba lagi.',
@@ -142,46 +100,98 @@ class SupabaseAuthService {
     }
   }
 
+  // ==========================================
+  // OAUTH AUTHENTICATION
+  // ==========================================
+  
   Future<Map<String, dynamic>> signInWithOAuth(String provider) async {
     try {
-      const redirectUrl = 'https://rekty-anjany-5a2eb.web.app/auth/callback';
-      final oauthUrl = '$_authUrl/authorize?provider=$provider&redirect_to=$redirectUrl';
+      debugPrint('🔐 Starting OAuth flow for provider: $provider');
       
+      // For web, signInWithOAuth returns bool and automatically redirects
+      if (kIsWeb) {
+        await _supabase.auth.signInWithOAuth(
+          _getOAuthProvider(provider),
+          redirectTo: 'https://rekty-anjany-5a2eb.web.app/auth/callback',
+        );
+        
+        debugPrint('✅ OAuth redirect initiated');
+        
+        return {
+          'success': true,
+          'message': 'Redirecting to $provider...',
+        };
+      } else {
+        // For mobile, return URL for manual handling
+        final response = await _supabase.auth.signInWithOAuth(
+          _getOAuthProvider(provider),
+          redirectTo: 'https://rekty-anjany-5a2eb.web.app/auth/callback',
+        );
+        
+        return {
+          'success': true,
+          'message': 'Redirect to OAuth...',
+        };
+      }
+    } on AuthException catch (e) {
+      debugPrint('❌ OAuth error: ${e.message}');
       return {
-        'success': true,
-        'oauthUrl': oauthUrl,
-        'message': 'Redirect to OAuth...',
+        'success': false,
+        'message': 'OAuth error: ${e.message}',
       };
     } catch (e) {
+      debugPrint('❌ Unexpected OAuth error: $e');
       return {
         'success': false,
         'message': 'OAuth error: $e',
       };
     }
   }
+  
+  OAuthProvider _getOAuthProvider(String provider) {
+    switch (provider.toLowerCase()) {
+      case 'google':
+        return OAuthProvider.google;
+      case 'github':
+        return OAuthProvider.github;
+      case 'facebook':
+        return OAuthProvider.facebook;
+      default:
+        throw Exception('Unsupported OAuth provider: $provider');
+    }
+  }
 
+  // ==========================================
+  // ANONYMOUS AUTHENTICATION
+  // ==========================================
+  
   Future<Map<String, dynamic>> signInAnonymously() async {
     try {
-      final timestamp = DateTime.now().millisecondsSinceEpoch;
+      debugPrint('👤 Attempting anonymous login');
       
-      _accessToken = 'guest_token_$timestamp';
-      _currentUser = {
-        'id': 'guest_$timestamp',
-        'email': 'guest_$timestamp@temp.local',
-        'user_metadata': {
-          'full_name': 'Guest User',
-          'is_guest': true,
-        },
-      };
+      final response = await _supabase.auth.signInAnonymously();
       
-      _saveSessionToStorage();
-      
+      if (response.user != null) {
+        debugPrint('✅ Anonymous login successful');
+        return {
+          'success': true,
+          'user': response.user!.toJson(),
+          'message': 'Login sebagai tamu berhasil!',
+        };
+      } else {
+        return {
+          'success': false,
+          'message': 'Gagal login sebagai tamu',
+        };
+      }
+    } on AuthException catch (e) {
+      debugPrint('❌ Anonymous login error: ${e.message}');
       return {
-        'success': true,
-        'user': _currentUser,
-        'message': 'Login sebagai tamu berhasil!',
+        'success': false,
+        'message': 'Gagal login sebagai tamu: ${e.message}',
       };
     } catch (e) {
+      debugPrint('❌ Unexpected anonymous login error: $e');
       return {
         'success': false,
         'message': 'Gagal login sebagai tamu. Silakan coba lagi.',
@@ -189,43 +199,148 @@ class SupabaseAuthService {
     }
   }
 
-  Future<void> signOut() async {
+  // ==========================================
+  // SIGN OUT
+  // ==========================================
+  
+  Future<Map<String, dynamic>> signOut() async {
     try {
-      if (_accessToken != null) {
-        await http.post(
-          Uri.parse('$_authUrl/logout'),
-          headers: _headers(token: _accessToken),
-        );
-      }
+      debugPrint('🚪 Signing out');
       
-      _accessToken = null;
-      _currentUser = null;
-      _clearSessionFromStorage();
+      await _supabase.auth.signOut();
+      
+      debugPrint('✅ Sign out successful');
+      
+      return {
+        'success': true,
+        'message': 'Logout berhasil',
+      };
+    } on AuthException catch (e) {
+      debugPrint('❌ Sign out error: ${e.message}');
+      return {
+        'success': false,
+        'message': 'Logout error: ${e.message}',
+      };
     } catch (e) {
-      // Ignore
+      debugPrint('❌ Unexpected sign out error: $e');
+      return {
+        'success': false,
+        'message': 'Logout error: $e',
+      };
     }
   }
 
-  Map<String, dynamic>? get currentUser => _currentUser;
-  bool get isAuthenticated => _currentUser != null;
-  String? get accessToken => _accessToken;
+  // ==========================================
+  // EMAIL OTP AUTHENTICATION
+  // ==========================================
+
+  /// Send OTP code to email (passwordless login)
+  Future<Map<String, dynamic>> signInWithOTP({
+    required String email,
+  }) async {
+    try {
+      debugPrint('📧 Sending OTP to: $email');
+      
+      await _supabase.auth.signInWithOtp(
+        email: email,
+        shouldCreateUser: true,
+      );
+      
+      debugPrint('✅ OTP sent successfully');
+      
+      return {
+        'success': true,
+        'message': 'Kode OTP telah dikirim ke email Anda. Silakan cek inbox.',
+      };
+    } on AuthException catch (e) {
+      debugPrint('❌ OTP send error: ${e.message}');
+      return {
+        'success': false,
+        'message': _getErrorMessage(e.message),
+      };
+    } catch (e) {
+      debugPrint('❌ Unexpected OTP send error: $e');
+      return {
+        'success': false,
+        'message': 'Terjadi kesalahan. Silakan coba lagi.',
+      };
+    }
+  }
+
+  /// Verify OTP code and login
+  Future<Map<String, dynamic>> verifyOTP({
+    required String email,
+    required String token,
+  }) async {
+    try {
+      debugPrint('🔐 Verifying OTP for: $email');
+      
+      final response = await _supabase.auth.verifyOTP(
+        email: email,
+        token: token,
+        type: OtpType.email,
+      );
+      
+      if (response.user != null) {
+        debugPrint('✅ OTP verification successful');
+        return {
+          'success': true,
+          'user': response.user!.toJson(),
+          'message': 'Login berhasil!',
+        };
+      } else {
+        return {
+          'success': false,
+          'message': 'Verifikasi OTP gagal',
+        };
+      }
+    } on AuthException catch (e) {
+      debugPrint('❌ OTP verification error: ${e.message}');
+      return {
+        'success': false,
+        'message': _getErrorMessage(e.message),
+      };
+    } catch (e) {
+      debugPrint('❌ Unexpected OTP verification error: $e');
+      return {
+        'success': false,
+        'message': 'Terjadi kesalahan. Silakan coba lagi.',
+      };
+    }
+  }
+
+  // ==========================================
+  // HELPER METHODS
+  // ==========================================
+
+  Map<String, dynamic>? get currentUser {
+    final user = _supabase.auth.currentUser;
+    return user?.toJson();
+  }
+  
+  bool get isAuthenticated => _supabase.auth.currentUser != null;
+  
+  String? get accessToken => _supabase.auth.currentSession?.accessToken;
+  
+  User? get user => _supabase.auth.currentUser;
 
   Future<void> saveOAuthSession(String token) async {
     try {
-      _accessToken = token;
+      debugPrint('💾 Attempting to save OAuth session with token');
       
-      final response = await http.get(
-        Uri.parse('$_authUrl/user'),
-        headers: _headers(token: token),
-      );
+      // The Supabase Flutter SDK automatically handles session management
+      // when OAuth redirects back with access_token in the URL fragment
+      // We just need to check if the session is already saved
       
-      if (response.statusCode == 200) {
-        final data = json.decode(response.body);
-        _currentUser = data;
-        _saveSessionToStorage();
+      final currentUser = _supabase.auth.currentUser;
+      if (currentUser != null) {
+        debugPrint('✅ OAuth session already saved by SDK');
+        debugPrint('   User: ${currentUser.email}');
+      } else {
+        debugPrint('⚠️ No user session found after OAuth callback');
       }
     } catch (e) {
-      // Ignore
+      debugPrint('❌ Error in saveOAuthSession: $e');
     }
   }
 
@@ -244,6 +359,10 @@ class SupabaseAuthService {
       return 'Format email tidak valid';
     } else if (error.contains('network')) {
       return 'Tidak ada koneksi internet';
+    } else if (error.contains('invalid otp') || error.contains('otp expired') || error.contains('token has expired')) {
+      return 'Kode OTP salah atau sudah kadaluarsa';
+    } else if (error.contains('email rate limit')) {
+      return 'Terlalu banyak permintaan. Tunggu beberapa menit.';
     } else {
       return 'Terjadi kesalahan. Silakan coba lagi';
     }

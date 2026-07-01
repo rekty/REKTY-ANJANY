@@ -6,6 +6,7 @@ import '../../../core/constants/app_duration.dart';
 import '../../../core/constants/app_radius.dart';
 import '../../../core/constants/app_shadow.dart';
 import '../../../core/constants/app_spacing.dart';
+import '../../../core/constants/app_breakpoints.dart';
 import '../../../core/services/supabase_auth_service.dart';
 
 class LoginButton extends StatefulWidget {
@@ -63,6 +64,10 @@ class _LoginButtonState extends State<LoginButton> {
 
   @override
   Widget build(BuildContext context) {
+    // Use screen width instead of device detection
+    final screenWidth = MediaQuery.of(context).size.width;
+    final useCompactLayout = screenWidth < 800;
+    
     return MouseRegion(
       cursor: SystemMouseCursors.click,
       onEnter: (_) => setState(() => _hover = true),
@@ -83,13 +88,13 @@ class _LoginButtonState extends State<LoginButton> {
                 },
           icon: Icon(
             _isLoggedIn ? Icons.logout_rounded : Icons.login_rounded,
-            size: 20,
+            size: useCompactLayout ? 16 : 20,
           ),
           label: Text(
             _isLoggedIn ? 'Logout' : 'Login',
-            style: const TextStyle(
+            style: TextStyle(
               fontWeight: FontWeight.w700,
-              fontSize: 15,
+              fontSize: useCompactLayout ? 13 : 15,
             ),
           ),
           style: ElevatedButton.styleFrom(
@@ -97,9 +102,9 @@ class _LoginButtonState extends State<LoginButton> {
                 _hover ? AppColors.primaryHover : AppColors.primary,
             foregroundColor: Colors.black,
             elevation: 0,
-            padding: const EdgeInsets.symmetric(
-              horizontal: AppSpacing.xl,
-              vertical: AppSpacing.lg,
+            padding: EdgeInsets.symmetric(
+              horizontal: useCompactLayout ? AppSpacing.md : AppSpacing.xl,
+              vertical: useCompactLayout ? AppSpacing.sm : AppSpacing.lg,
             ),
             shape: const RoundedRectangleBorder(
               borderRadius: AppRadius.button,

@@ -7,6 +7,7 @@ import '../../core/constants/app_radius.dart';
 import '../../core/constants/app_shadow.dart';
 import '../../core/constants/app_spacing.dart';
 import '../../core/config/supabase_config.dart';
+import '../../core/services/seo_service.dart';
 import '../../shared/layout/app_scaffold.dart';
 import '../../shared/layout/responsive_container.dart';
 import '../../shared/layout/section_title.dart';
@@ -35,6 +36,16 @@ class _GalleryPageSupabaseState extends State<GalleryPageSupabase> {
   @override
   void initState() {
     super.initState();
+    // Set SEO meta tags
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      SeoService.instance.updatePageMeta(
+        title: 'Gallery - Rekty Anjany',
+        description: 'Explore our collection of designs, mockups, and creative work. Visual portfolio by Rekty Anjany.',
+        keywords: 'gallery, portfolio, designs, mockups, UI, UX, creative work, Rekty Anjany',
+        url: 'https://rekty-anjany-5a2eb.web.app/#/gallery',
+        type: 'website',
+      );
+    });
     _loadItems();
   }
 
@@ -237,12 +248,43 @@ class _GalleryCard extends StatefulWidget {
 
 class _GalleryCardState extends State<_GalleryCard> {
   bool _hover = false;
+  
+  // Helper method to parse color from hex string
+  Color _parseColor(String? hexColor, Color defaultColor) {
+    if (hexColor == null || hexColor.isEmpty) return defaultColor;
+    try {
+      return Color(int.parse(hexColor.replaceFirst('#', ''), radix: 16) + 0xFF000000);
+    } catch (e) {
+      return defaultColor;
+    }
+  }
+
+  // Helper method to parse font weight from string
+  FontWeight _parseFontWeight(String? fontWeightStr) {
+    switch (fontWeightStr) {
+      case 'light':
+        return FontWeight.w300;
+      case 'normal':
+        return FontWeight.w400;
+      case 'semibold':
+        return FontWeight.w600;
+      case 'bold':
+        return FontWeight.w700;
+      default:
+        return FontWeight.w700;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     final imageUrl = widget.item['image_url'] as String?;
     final title = widget.item['title'] as String? ?? 'Untitled';
     final category = widget.item['category'] as String? ?? '';
+    
+    // Dynamic styling from database
+    final titleColor = _parseColor(widget.item['title_color'] as String?, AppColors.textPrimary);
+    final descriptionColor = _parseColor(widget.item['description_color'] as String?, AppColors.textSecondary);
+    final fontWeight = _parseFontWeight(widget.item['font_weight'] as String?);
 
     return MouseRegion(
       cursor: SystemMouseCursors.click,
@@ -319,10 +361,10 @@ class _GalleryCardState extends State<_GalleryCard> {
                 children: [
                   Text(
                     title,
-                    style: const TextStyle(
-                      color: AppColors.textPrimary,
+                    style: TextStyle(
+                      color: titleColor,
                       fontSize: 18,
-                      fontWeight: FontWeight.bold,
+                      fontWeight: fontWeight,
                     ),
                   ),
                   const SizedBox(height: AppSpacing.sm),

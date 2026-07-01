@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'dart:html' as html;
 
 import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_radius.dart';
@@ -55,7 +54,17 @@ class _LoginPageState extends State<LoginPage> {
               behavior: SnackBarBehavior.floating,
             ),
           );
-          context.go('/');
+          
+          // Check for redirect parameter in URL
+          final uri = GoRouterState.of(context).uri;
+          final redirectPath = uri.queryParameters['redirect'];
+          
+          // If there's a redirect parameter, use it; otherwise go to admin
+          if (redirectPath != null && redirectPath.isNotEmpty) {
+            context.go(redirectPath);
+          } else {
+            context.go('/admin');
+          }
         }
       } else {
         setState(() {
@@ -81,10 +90,15 @@ class _LoginPageState extends State<LoginPage> {
 
     try {
       final response = await _auth.signInWithOAuth('google');
-      if (response['success'] == true && response['oauthUrl'] != null) {
-        // Redirect to Supabase OAuth URL
-        html.window.location.href = response['oauthUrl'];
+      if (response['success'] != true) {
+        setState(() {
+          _errorMessage = response['message'] ?? 'Google login failed';
+        });
+        if (mounted) {
+          setState(() => _loading = false);
+        }
       }
+      // On web, signInWithOAuth automatically redirects, so no need to set window.location
     } catch (e) {
       setState(() {
         _errorMessage = 'Google login failed: $e';
@@ -103,10 +117,15 @@ class _LoginPageState extends State<LoginPage> {
 
     try {
       final response = await _auth.signInWithOAuth('github');
-      if (response['success'] == true && response['oauthUrl'] != null) {
-        // Redirect to Supabase OAuth URL
-        html.window.location.href = response['oauthUrl'];
+      if (response['success'] != true) {
+        setState(() {
+          _errorMessage = response['message'] ?? 'GitHub login failed';
+        });
+        if (mounted) {
+          setState(() => _loading = false);
+        }
       }
+      // On web, signInWithOAuth automatically redirects, so no need to set window.location
     } catch (e) {
       setState(() {
         _errorMessage = 'GitHub login failed: $e';
@@ -125,10 +144,15 @@ class _LoginPageState extends State<LoginPage> {
 
     try {
       final response = await _auth.signInWithOAuth('facebook');
-      if (response['success'] == true && response['oauthUrl'] != null) {
-        // Redirect to Supabase OAuth URL
-        html.window.location.href = response['oauthUrl'];
+      if (response['success'] != true) {
+        setState(() {
+          _errorMessage = response['message'] ?? 'Facebook login failed';
+        });
+        if (mounted) {
+          setState(() => _loading = false);
+        }
       }
+      // On web, signInWithOAuth automatically redirects, so no need to set window.location
     } catch (e) {
       setState(() {
         _errorMessage = 'Facebook login failed: $e';
@@ -230,6 +254,40 @@ class _LoginLogo extends StatelessWidget {
           style: TextStyle(
             color: AppColors.textSecondary,
             fontSize: 15,
+          ),
+        ),
+        const SizedBox(height: AppSpacing.md),
+        Container(
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.md,
+            vertical: AppSpacing.sm,
+          ),
+          decoration: BoxDecoration(
+            color: AppColors.primary.withValues(alpha: 0.1),
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(
+              color: AppColors.primary.withValues(alpha: 0.3),
+            ),
+          ),
+          child: const Column(
+            children: [
+              Text(
+                '👤 Public: Login via OAuth',
+                style: TextStyle(
+                  color: AppColors.textPrimary,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              Text(
+                '🔐 Admin: Email/Password or OAuth',
+                style: TextStyle(
+                  color: AppColors.primary,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
           ),
         ),
       ],
